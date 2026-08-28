@@ -1,0 +1,146 @@
+import type { Translation, Locale } from './types';
+
+export const translations: Record<Locale, Translation> = {
+  fa: {
+    app: {
+      title: 'تحلیل بازار رمزنگاری',
+      subtitle: 'نمایش بلادرنگ سیگنال‌های بازار و تحلیل تکنیکال',
+    },
+    controls: {
+      symbol: 'نماد',
+      interval: 'بازه زمانی',
+      range: 'محدوده',
+      search: 'جستجو',
+    },
+    summary: {
+      symbol: 'نماد',
+      timeframe: 'بازه زمانی',
+      range: 'محدوده',
+      totalVolume: 'کل حجم',
+    },
+    chart: {
+      volume: 'حجم',
+      bar: 'ستونی',
+      line: 'خطی',
+      area: 'مساحتی',
+    },
+    openInterest: {
+      title: 'Open Interest',
+      badge: 'Real-time',
+    },
+    fundingRate: {
+      title: 'Funding Rate',
+      badge: 'Perpetual',
+    },
+    signal: {
+      title: 'سیگنال بازار',
+      finalScore: 'امتیاز نهایی:',
+      loading: 'در حال بارگذاری...',
+      noData: 'داده‌ای موجود نیست',
+      error: 'خطا: ',
+      timeframesTitle: 'تحلیل بر اساس بازه‌های زمانی',
+      priceChange: 'تغییر قیمت:',
+      oiChange: 'تغییر OI:',
+      volumeRatio: 'نسبت حجم:',
+      fundingRate: 'Funding Rate:',
+      positioning: 'موضع بازار:',
+      priceOiScore: 'نمره قیمت-OI:',
+      volumeScore: 'نمره حجم:',
+      fundingScore: 'نمره Funding:',
+      liquidationScore: 'نمره Liquidation:',
+      totalScore: 'کل امتیاز:',
+    },
+    error: {
+      marketData: 'خطا: ',
+      openInterest: 'خطا در بارگذاری Open Interest',
+      fundingRate: 'خطا در بارگذاری Funding Rate',
+    },
+    signals: {
+      LONG: 'خرید',
+      SHORT: 'فروش',
+      NEUTRAL: 'خنثی',
+    },
+    positioning: {
+      LONG_BUILDUP: 'افزایش تجمع خرید',
+      SHORT_COVERING: 'بسته شدن فروش',
+      LONG_LIQUIDATION: 'پاکسازی خرید',
+      SHORT_BUILDUP: 'افزایش تجمع فروش',
+    },
+    news: {
+      title: 'اخبار کریپتو',
+      badge: 'Latest',
+      readMore: 'بیشتر بخوانید',
+    },
+  },
+  en: {
+    app: {
+      title: 'Crypto Market Analysis',
+      subtitle: 'Real-time market signals and technical analysis',
+    },
+    controls: {
+      symbol: 'Symbol',
+      interval: 'Interval',
+      range: 'Range',
+      search: 'Search',
+    },
+    summary: {
+      symbol: 'Symbol',
+      timeframe: 'Timeframe',
+      range: 'Range',
+      totalVolume: 'Total Volume',
+    },
+    chart: {
+      volume: 'Volume',
+      bar: 'Bar',
+      line: 'Line',
+      area: 'Area',
+    },
+    openInterest: {
+      title: 'Open Interest',
+      badge: 'Real-time',
+    },
+    fundingRate: {
+      title: 'Funding Rate',
+      badge: 'Perpetual',
+    },
+    signal: {
+      title: 'Market Signal',
+      finalScore: 'Final Score:',
+      loading: 'Loading...',
+      noData: 'No data available',
+      error: 'Error: ',
+      timeframesTitle: 'Analysis by Timeframes',
+      priceChange: 'Price Change:',
+      oiChange: 'OI Change:',
+      volumeRatio: 'Volume Ratio:',
+      fundingRate: 'Funding Rate:',
+      positioning: 'Market Position:',
+      priceOiScore: 'Price-OI Score:',
+      volumeScore: 'Volume Score:',
+      fundingScore: 'Funding Score:',
+      liquidationScore: 'Liquidation Score:',
+      totalScore: 'Total Score:',
+    },
+    error: {
+      marketData: 'Error: ',
+      openInterest: 'Error loading Open Interest',
+      fundingRate: 'Error loading Funding Rate',
+    },
+    signals: {
+      LONG: 'LONG',
+      SHORT: 'SHORT',
+      NEUTRAL: 'NEUTRAL',
+    },
+    positioning: {
+      LONG_BUILDUP: 'Long Buildup',
+      SHORT_COVERING: 'Short Covering',
+      LONG_LIQUIDATION: 'Long Liquidation',
+      SHORT_BUILDUP: 'Short Buildup',
+    },
+    news: {
+      title: 'Crypto News',
+      badge: 'Latest',
+      readMore: 'Read more',
+    },
+  },
+};
