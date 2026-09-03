@@ -1,0 +1,151 @@
+.long-short-signals-page {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 24px;
+  color: #e2e8f0;
+}
+
+.header-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.last-update {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.refresh-btn {
+  background: transparent;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.refresh-btn:hover {
+  background: #334155;
+  border-color: #64748b;
+}
+
+.signals-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.signals-section {
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #334155;
+}
+
+.section-title {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #334155;
+}
+
+.long-title {
+  color: #22c55e;
+}
+
+.short-title {
+  color: #ef4444;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.signals-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.signals-table th,
+.signals-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #334155;
+}
+
+.signals-table th {
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.signals-table tbody tr:hover {
+  background: #334155;
+}
+
+.symbol-cell {
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.score-cell {
+  font-weight: 700;
+  color: #f59e0b;
+}
+
+.pos {
+  color: #22c55e;
+}
+
+.neg {
+  color: #ef4444;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #94a3b8;
+}
+
+.error-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #ef4444;
+}
+
+.retry-btn {
+  margin-top: 12px;
+  padding: 8px 16px;
+  background: #334155;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  color: #e2e8f0;
+  cursor: pointer;
+}
+
+.retry-btn:hover {
+  background: #475569;
+}
+
+[dir="rtl"] .signals-table th,
+[dir="rtl"] .signals-table td {
+  text-align: right;
+}

@@ -4,9 +4,14 @@ import { useMarketData } from './hooks/useMarketData';
 import { useOpenInterest } from './hooks/useOpenInterest';
 import { useFundingRate } from './hooks/useFundingRate';
 import { useEvents } from './hooks/useEvents';
+import { useScanNotification } from './hooks/useScanNotification';
 import { HomePage } from './pages/HomePage';
 import { SignalsPage } from './pages/SignalsPage';
 import { WatchlistPage } from './pages/WatchlistPage';
+import { FourHourSignalsPage } from './pages/FourHourSignalsPage';
+import { LongShortSignalsPage } from './pages/LongShortSignalsPage';
+import { VolumeProfilePage } from './pages/VolumeProfilePage';
+import { NewListingsPage } from './pages/NewListingsPage';
 import { MarketSummary } from './components/MarketSummary';
 import { VolumeChart } from './components/VolumeChart';
 import { OpenInterestChart } from './components/OpenInterestChart';
@@ -17,15 +22,20 @@ import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { FuturesSymbolsButton } from './components/FuturesSymbolsButton';
 import { Loading } from './components/Loading';
 import { Button } from './components/Button';
+import { VolumeProfileTab } from './components/VolumeProfileTab';
 import { useI18n } from './i18n';
 import './App.css';
 import './components/MarketControls.css';
 import './components/NewsList.css';
 import './pages/SignalsPage.css';
 import './pages/WatchlistPage.css';
+import './pages/FourHourSignalsPage.css';
+import './pages/LongShortSignalsPage.css';
+import './pages/VolumeProfilePage.css';
+import './pages/NewListingsPage.css';
 
-type Page = 'home' | 'detail' | 'signals' | 'watchlist';
-type TabId = 'charts' | 'signals' | 'news' | 'events' | 'tradingview-news' | 'important-news';
+type Page = 'home' | 'detail' | 'signals' | 'watchlist' | 'four-hour-signals' | 'long-short-signals' | 'volume-profile' | 'new-listings';
+type TabId = 'charts' | 'signals' | 'news' | 'events' | 'tradingview-news' | 'important-news' | 'volume-profile';
 
 interface TradingViewNewsItem {
     id: string;
@@ -172,10 +182,15 @@ function ImportantNews({ isRTL }: { isRTL: boolean }) {
 
 function App() {
     const { t, isRTL } = useI18n();
+    useScanNotification();
 
     const getPageFromUrl = (): Page => {
         if (window.location.pathname === '/signals') return 'signals';
         if (window.location.pathname === '/watchlist') return 'watchlist';
+        if (window.location.pathname === '/four-hour-signals') return 'four-hour-signals';
+        if (window.location.pathname === '/long-short-signals') return 'long-short-signals';
+        if (window.location.pathname === '/volume-profile') return 'volume-profile';
+    if (window.location.pathname === '/new-listings') return 'new-listings';
         const params = new URLSearchParams(window.location.search);
         return params.get('symbol') ? 'detail' : 'home';
     };
@@ -196,6 +211,14 @@ function App() {
                 setPage('signals');
             } else if (window.location.pathname === '/watchlist') {
                 setPage('watchlist');
+            } else if (window.location.pathname === '/four-hour-signals') {
+                setPage('four-hour-signals');
+            } else if (window.location.pathname === '/long-short-signals') {
+                setPage('long-short-signals');
+            } else if (window.location.pathname === '/volume-profile') {
+                setPage('volume-profile');
+            } else if (window.location.pathname === '/new-listings') {
+                setPage('new-listings');
             } else if (s) {
                 setSymbol(s.toUpperCase());
                 setPage('detail');
@@ -292,6 +315,31 @@ function App() {
         setPage('home');
     }, []);
 
+    const handleNavigateToFourHourSignals = useCallback(() => {
+        window.history.pushState({}, '', '/four-hour-signals');
+        setPage('four-hour-signals');
+    }, []);
+
+    const handleBackFromFourHourSignals = useCallback(() => {
+        window.history.pushState({}, '', '/');
+        setPage('home');
+    }, []);
+
+    const handleNavigateToLongShortSignals = useCallback(() => {
+        window.history.pushState({}, '', '/long-short-signals');
+        setPage('long-short-signals');
+    }, []);
+
+    const handleNavigateToVolumeProfile = useCallback(() => {
+        window.history.pushState({}, '', '/volume-profile');
+        setPage('volume-profile');
+    }, []);
+
+    const handleNavigateToNewListings = useCallback(() => {
+        window.history.pushState({}, '', '/new-listings');
+        setPage('new-listings');
+    }, []);
+
     if (page === 'home') {
         return (
             <div className="app-container">
@@ -333,6 +381,58 @@ function App() {
                         >
                             {isRTL ? 'واچ لیست' : 'Watchlist'}
                         </Button>
+                        <Button
+                            variant="purple"
+                            size="md"
+                            icon={
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                                </svg>
+                            }
+                            onClick={handleNavigateToFourHourSignals}
+                        >
+                            {isRTL ? 'سیگنال‌های ۴ساعته' : '4h Signals'}
+                        </Button>
+                        <Button
+                            variant="purple"
+                            size="md"
+                            icon={
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M12 20V10"/>
+                                    <path d="M18 20V4"/>
+                                    <path d="M6 20v-4"/>
+                                </svg>
+                            }
+                            onClick={handleNavigateToLongShortSignals}
+                        >
+                            {isRTL ? 'لانگ و شورت' : 'Long & Short'}
+                        </Button>
+                        <Button
+                            variant="purple"
+                            size="md"
+                            icon={
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                    <path d="M3 9h18"/>
+                                    <path d="M9 21V9"/>
+                                </svg>
+                            }
+                            onClick={handleNavigateToVolumeProfile}
+                        >
+                            {isRTL ? 'والیوم پروفایل' : 'Volume Profile'}
+                        </Button>
+                        <Button
+                            variant="purple"
+                            size="md"
+                            icon={
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M12 2v20M2 12h20"/>
+                                </svg>
+                            }
+                            onClick={handleNavigateToNewListings}
+                        >
+                            {isRTL ? 'ارزهای جدید' : 'New Listings'}
+                        </Button>
                     </div>
                 </div>
                 <HomePage onSearch={handleSearch} />
@@ -358,6 +458,27 @@ function App() {
         );
     }
 
+    if (page === 'four-hour-signals') {
+        return (
+            <FourHourSignalsPage
+                onSelectSymbol={handleSearch}
+                onBack={handleBackFromFourHourSignals}
+            />
+        );
+    }
+
+    if (page === 'long-short-signals') {
+        return <LongShortSignalsPage />;
+    }
+
+    if (page === 'volume-profile') {
+        return <VolumeProfilePage />;
+    }
+
+    if (page === 'new-listings') {
+        return <NewListingsPage />;
+    }
+
     const tabs: { id: TabId; label: string; icon: string }[] =
         isRTL
             ? [
@@ -370,6 +491,11 @@ function App() {
                       id: 'signals',
                       label: 'سیگنال‌ها',
                       icon: '📈',
+                  },
+                  {
+                      id: 'volume-profile',
+                      label: 'والیوم پروفایل',
+                      icon: '📊',
                   },
                   {
                       id: 'news',
@@ -402,6 +528,11 @@ function App() {
                       id: 'signals',
                       label: 'Signals',
                       icon: '📈',
+                  },
+                  {
+                      id: 'volume-profile',
+                      label: 'Volume Profile',
+                      icon: '📊',
                   },
                   {
                       id: 'news',
@@ -556,6 +687,14 @@ function App() {
                             <MarketSignal
                                 symbol={symbol}
                             />
+                        </div>
+                    )}
+
+                    {activeTab === 'volume-profile' && (
+                        <div className="tab-panel">
+                            <div className="glass-card">
+                                <VolumeProfileTab symbol={symbol} isRTL={isRTL} />
+                            </div>
                         </div>
                     )}
 

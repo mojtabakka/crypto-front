@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useI18n } from '../i18n';
 import { Loading } from '../components/Loading';
 import { Button } from '../components/Button';
+import { useScanProgress } from '../hooks/useScanProgress';
 import './SignalsPage.css';
 
 interface SymbolSignal {
@@ -182,6 +183,8 @@ interface TradingViewNewsItem {
 interface NewsPanelProps {
     symbol: string;
     isRTL: boolean;
+    progress?: number;
+    total?: number;
     onClose: () => void;
 }
 
@@ -346,6 +349,7 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
     const [activeTab, setActiveTab] = useState<Tab | null>(null);
     const [watchlistSymbols, setWatchlistSymbols] = useState<Set<string>>(new Set());
     const [newsSymbol, setNewsSymbol] = useState<string | null>(null);
+    const { progress: scanProgress, resetProgress } = useScanProgress();
 
     const { data: watchlistData } = useQuery({
         queryKey: ['watchlist'],
@@ -696,7 +700,7 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
 
             {activeTab === 'signals' && (
                 <div className="signals-content">
-                    {signalsLoading && <Loading isRTL={isRTL} />}
+                    {signalsLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
                     {signalsData && (
                         <>
                             {signalsData.longs.length > 0 && (
@@ -721,7 +725,7 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
 
             {activeTab === 'pullbacks' && (
                 <div className="signals-content">
-                    {pullbacksLoading && <Loading isRTL={isRTL} />}
+                    {pullbacksLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
                     {pullbacksData && (
                         <>
                             {pullbacksData.longs.length > 0 && (
@@ -746,7 +750,7 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
 
             {activeTab === 'reapproach' && (
                 <div className="signals-content">
-                    {reapproachLoading && <Loading isRTL={isRTL} />}
+                    {reapproachLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
                     {reapproachData && (
                         <>
                             {reapproachData.longs.length > 0 && (
@@ -771,7 +775,7 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
 
             {activeTab === 'weekly-pullbacks' && (
                 <div className="signals-content">
-                    {weeklyPullbacksLoading && <Loading isRTL={isRTL} />}
+                    {weeklyPullbacksLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
                     {weeklyPullbacksData && (
                         <>
                             {weeklyPullbacksData.longs.length > 0 && (
@@ -796,7 +800,7 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
 
             {activeTab === 'weekly-reapproach' && (
                 <div className="signals-content">
-                    {weeklyReapproachLoading && <Loading isRTL={isRTL} />}
+                    {weeklyReapproachLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
                     {weeklyReapproachData && (
                         <>
                             {weeklyReapproachData.longs.length > 0 && (
@@ -821,7 +825,7 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
 
             {activeTab === 'weekly-above-ema50' && (
                 <div className="signals-content">
-                    {weeklyAboveEma50Loading && <Loading isRTL={isRTL} />}
+                    {weeklyAboveEma50Loading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
                     {weeklyAboveEma50Data && (
                         <>
                             {weeklyAboveEma50Data.symbols.length > 0 && (
@@ -876,7 +880,7 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
 
             {activeTab === 'daily-above-ema50-long' && (
                 <div className="signals-content">
-                    {dailyAboveEma50LongLoading && <Loading isRTL={isRTL} />}
+                    {dailyAboveEma50LongLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
                     {dailyAboveEma50LongData && (
                         <>
                             {dailyAboveEma50LongData.symbols.length > 0 && (
@@ -934,7 +938,7 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
 
             {activeTab === 'weekly-above-ema50-long' && (
                 <div className="signals-content">
-                    {weeklyAboveEma50LongLoading && <Loading isRTL={isRTL} />}
+                    {weeklyAboveEma50LongLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
                     {weeklyAboveEma50LongData && (
                         <>
                             {weeklyAboveEma50LongData.symbols.length > 0 && (
@@ -992,7 +996,7 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
 
             {activeTab === '4h-pullbacks' && (
                 <div className="signals-content">
-                    {pullbacks4hLoading && <Loading isRTL={isRTL} />}
+                    {pullbacks4hLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
                     {pullbacks4hData && (
                         <>
                             {pullbacks4hData.longs.length > 0 && (
@@ -1017,7 +1021,7 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
 
             {activeTab === 'monthly-pullbacks' && (
                 <div className="signals-content">
-                    {monthlyPullbacksLoading && <Loading isRTL={isRTL} />}
+                    {monthlyPullbacksLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
                     {monthlyPullbacksData && (
                         <>
                             {monthlyPullbacksData.longs.length > 0 && (
@@ -1042,7 +1046,7 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
 
             {activeTab === 'monthly-reapproach' && (
                 <div className="signals-content">
-                    {monthlyReapproachLoading && <Loading isRTL={isRTL} />}
+                    {monthlyReapproachLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
                     {monthlyReapproachData && (
                         <>
                             {monthlyReapproachData.longs.length > 0 && (
@@ -1067,7 +1071,7 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
 
             {activeTab === '4h-reapproach' && (
                 <div className="signals-content">
-                    {reapproach4hLoading && <Loading isRTL={isRTL} />}
+                    {reapproach4hLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
                     {reapproach4hData && (
                         <>
                             {reapproach4hData.longs.length > 0 && (
@@ -1093,7 +1097,7 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
         {newsSymbol && (
             <NewsPanel
                 symbol={newsSymbol}
-                isRTL={isRTL}
+                isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0}
                 onClose={() => setNewsSymbol(null)}
             />
         )}

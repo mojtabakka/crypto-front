@@ -1,0 +1,169 @@
+.four-hour-signals-page {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.four-hour-signals-page .signals-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.four-hour-signals-page .signals-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+}
+
+.back-btn,
+.refresh-btn {
+  padding: 8px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.back-btn:hover,
+.refresh-btn:hover:not(:disabled) {
+  background: rgba(96, 165, 250, 0.1);
+  border-color: var(--accent-blue);
+}
+
+.refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.last-update {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+
+.signals-table-container {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+}
+
+.signals-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.signals-table th {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-weight: 500;
+  padding: 12px 8px;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.signals-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--border-subtle);
+  white-space: nowrap;
+}
+
+.signal-row {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.signal-row:hover {
+  background: rgba(96, 165, 250, 0.05);
+}
+
+.symbol-cell {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.score-cell {
+  font-weight: 600;
+  color: var(--accent-blue);
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.badge.pullback {
+  background: rgba(167, 139, 250, 0.15);
+  color: var(--accent-purple);
+}
+
+.badge.reapproach {
+  background: rgba(96, 165, 250, 0.15);
+  color: var(--accent-blue);
+}
+
+.badge.bullish {
+  background: rgba(52, 211, 153, 0.15);
+  color: var(--accent-green);
+}
+
+.badge.bearish {
+  background: rgba(248, 113, 113, 0.15);
+  color: var(--accent-red);
+}
+
+.pos {
+  color: var(--accent-green);
+}
+
+.neg {
+  color: var(--accent-red);
+}
+
+.error-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 48px;
+  color: var(--text-secondary);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px;
+  color: var(--text-muted);
+}
+
+.empty-state .hint {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+  .four-hour-signals-page {
+    padding: 12px;
+  }
+
+  .signals-table {
+    font-size: 11px;
+  }
+
+  .signals-table th,
+  .signals-table td {
+    padding: 6px 4px;
+  }
+}
