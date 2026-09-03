@@ -2,18 +2,20 @@ import {
     useQuery,
 } from '@tanstack/react-query';
 import { getMarketData } from '../api/market/market';
-
+import type { ExchangeName } from '../api/market/market';
 
 interface UseMarketDataParams {
     symbol: string;
     interval: string;
     range: string;
+    exchange?: ExchangeName;
 }
 
 export function useMarketData({
     symbol,
     interval,
     range,
+    exchange = 'BINANCE',
 }: UseMarketDataParams) {
     return useQuery({
         queryKey: [
@@ -21,6 +23,7 @@ export function useMarketData({
             symbol,
             interval,
             range,
+            exchange,
         ],
 
         queryFn: () =>
@@ -28,6 +31,7 @@ export function useMarketData({
                 symbol,
                 interval,
                 range,
+                exchange,
             }),
 
         staleTime: 0,

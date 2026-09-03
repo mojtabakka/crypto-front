@@ -23,7 +23,9 @@ import { FuturesSymbolsButton } from './components/FuturesSymbolsButton';
 import { Loading } from './components/Loading';
 import { Button } from './components/Button';
 import { VolumeProfileTab } from './components/VolumeProfileTab';
+import { ExchangeSelector } from './components/ExchangeSelector';
 import { useI18n } from './i18n';
+import type { ExchangeName } from './api/market/market';
 import './App.css';
 import './components/MarketControls.css';
 import './components/NewsList.css';
@@ -32,6 +34,8 @@ import './pages/WatchlistPage.css';
 import './pages/FourHourSignalsPage.css';
 import './pages/LongShortSignalsPage.css';
 import './pages/VolumeProfilePage.css';
+import './pages/NewListingsPage.css';
+import './components/ExchangeSelector.css';
 import './pages/NewListingsPage.css';
 
 type Page = 'home' | 'detail' | 'signals' | 'watchlist' | 'four-hour-signals' | 'long-short-signals' | 'volume-profile' | 'new-listings';
@@ -201,6 +205,11 @@ function App() {
         return params.get('symbol') || 'BTCUSDT';
     });
     const [activeTab, setActiveTab] = useState<TabId>('charts');
+    const [exchange, setExchange] = useState<ExchangeName>(() => {
+        const params = new URLSearchParams(window.location.search);
+        const ex = params.get('exchange') as ExchangeName;
+        return ex ?? 'BINANCE';
+    });
 
     useEffect(() => {
         const handlePopState = () => {
@@ -269,6 +278,7 @@ function App() {
         symbol,
         interval: '15m',
         range: '24h',
+        exchange,
     });
 
     const {
@@ -565,6 +575,11 @@ function App() {
                 <h1 className="detail-title">
                     {symbol}
                 </h1>
+                <ExchangeSelector
+                    selected={exchange}
+                    onChange={setExchange}
+                    isRTL={isRTL}
+                />
                 <LanguageSwitcher />
             </div>
 

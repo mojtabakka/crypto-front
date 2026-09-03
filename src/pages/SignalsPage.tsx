@@ -349,7 +349,7 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
     const [activeTab, setActiveTab] = useState<Tab | null>(null);
     const [watchlistSymbols, setWatchlistSymbols] = useState<Set<string>>(new Set());
     const [newsSymbol, setNewsSymbol] = useState<string | null>(null);
-    const { progress: scanProgress, resetProgress } = useScanProgress();
+    const { progress: scanProgress } = useScanProgress();
 
     const { data: watchlistData } = useQuery({
         queryKey: ['watchlist'],

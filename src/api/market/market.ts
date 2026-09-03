@@ -12,10 +12,20 @@ export interface MarketCandle {
     trades: number;
 }
 
-interface GetMarketDataParams {
+export type ExchangeName =
+    | 'BINANCE'
+    | 'OKX'
+    | 'BYBIT'
+    | 'MEXC'
+    | 'KUCOIN'
+    | 'BINGX'
+    | 'CRYPTOCOM';
+
+export interface GetMarketDataParams {
     symbol: string;
     interval: string;
     range: string;
+    exchange?: ExchangeName;
 }
 
 
@@ -58,9 +68,10 @@ export async function getMarketData({
     symbol,
     interval,
     range,
+    exchange = 'BINANCE',
 }: GetMarketDataParams): Promise<MarketCandle[]> {
     const response = await fetch(
-        `http://localhost:3000/market/${symbol}?interval=${interval}&range=${range}`,
+        `http://localhost:3000/market/${symbol}?interval=${interval}&range=${range}&exchange=${exchange}`,
     );
 
     if (!response.ok) {

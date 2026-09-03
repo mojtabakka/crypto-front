@@ -25,7 +25,7 @@ interface ListingsResponse {
 }
 
 export function NewListingsPage() {
-  const { t, isRTL } = useI18n();
+    const { isRTL } = useI18n();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string>('UPCOMING');
 
