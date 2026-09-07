@@ -48,8 +48,15 @@ interface ReapproachSignal {
 
 async function fetchLongs(): Promise<{ longs: SymbolSignal[]; shorts: SymbolSignal[] }> {
     const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
-    const response = await fetch(`http://localhost:3000/market-scanner/reliable?limit=30&exchange=${ex}`);
+    const response = await fetch(`http://localhost:3000/market-scanner?limit=30&exchange=${ex}`);
     if (!response.ok) throw new Error('Failed to fetch');
+    return response.json();
+}
+
+async function fetchReliableLongs(): Promise<{ longs: SymbolSignal[]; shorts: SymbolSignal[] }> {
+    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
+    const response = await fetch(`http://localhost:3000/market-scanner/reliable?limit=30&exchange=${ex}`);
+    if (!response.ok) throw new Error('Failed to fetch reliable signals');
     return response.json();
 }
 
@@ -386,6 +393,7 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
     const [activeTab, setActiveTab] = useState<Tab | null>(null);
     const [watchlistSymbols, setWatchlistSymbols] = useState<Set<string>>(new Set());
     const [newsSymbol, setNewsSymbol] = useState<string | null>(null);
+    const [useReliableSignals, setUseReliableSignals] = useState(false);
     const { progress: scanProgress } = useScanProgress();
 
     const { data: watchlistData } = useQuery({
@@ -419,7 +427,14 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
     const { data: signalsData, isLoading: signalsLoading, refetch: refetchSignals } = useQuery({
         queryKey: ['signals'],
         queryFn: fetchLongs,
-        enabled: activeTab === 'signals',
+        enabled: activeTab === 'signals' && !useReliableSignals,
+        staleTime: 60000,
+    });
+
+    const { data: reliableSignalsData, isLoading: reliableSignalsLoading, refetch: refetchReliableSignals } = useQuery({
+        queryKey: ['reliable-signals'],
+        queryFn: fetchReliableLongs,
+        enabled: activeTab === 'signals' && useReliableSignals,
         staleTime: 60000,
     });
 
@@ -543,7 +558,13 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
     });
 
     const handleRefresh = () => {
-        if (activeTab === 'signals') refetchSignals();
+        if (activeTab === 'signals') {
+            if (useReliableSignals) {
+                refetchReliableSignals();
+            } else {
+                refetchSignals();
+            }
+        }
         else if (activeTab === 'pullbacks') refetchPullbacks();
         else if (activeTab === 'reapproach') refetchReapproach();
         else if (activeTab === 'weekly-pullbacks') refetchWeeklyPullbacks();
@@ -563,7 +584,7 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
         else refetchWeeklyAboveEma50Long();
     };
 
-    const isLoading = signalsLoading || pullbacksLoading || reapproachLoading || weeklyPullbacksLoading || weeklyReapproachLoading || weeklyAboveEma50Loading || dailyAboveEma50LongLoading || weeklyAboveEma50LongLoading || pullbacks4hLoading || monthlyPullbacksLoading || monthlyReapproachLoading || reapproach4hLoading || ema21DailyPullbackLoading || ema21DailyReapproachLoading || ema214hPullbackLoading || ema214hReapproachLoading || ema21WeeklyPullbackLoading || ema21WeeklyReapproachLoading;
+    const isLoading = signalsLoading || reliableSignalsLoading || pullbacksLoading || reapproachLoading || weeklyPullbacksLoading || weeklyReapproachLoading || weeklyAboveEma50Loading || dailyAboveEma50LongLoading || weeklyAboveEma50LongLoading || pullbacks4hLoading || monthlyPullbacksLoading || monthlyReapproachLoading || reapproach4hLoading || ema21DailyPullbackLoading || ema21DailyReapproachLoading || ema214hPullbackLoading || ema214hReapproachLoading || ema21WeeklyPullbackLoading || ema21WeeklyReapproachLoading;
 
     const handleOpenTradingView = (symbol: string) => {
         window.open(`https://www.tradingview.com/symbols/${symbol}/`, '_blank');
@@ -716,10 +737,27 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
                     </svg>
                     {isRTL ? 'سیگنال‌های بازار' : 'Market Signals'}
                 </h2>
-                <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={isLoading}>
-                    🔄
-                </Button>
-            </div>
+                 <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={isLoading}>
+                     🔄
+                 </Button>
+                 <Button
+                     variant={useReliableSignals ? 'purple' : 'ghost'}
+                     size="sm"
+                     onClick={() => {
+                         setUseReliableSignals(!useReliableSignals);
+                         if (activeTab === 'signals') {
+                             if (!useReliableSignals) {
+                                 refetchReliableSignals();
+                             } else {
+                                 refetchSignals();
+                             }
+                         }
+                     }}
+                     disabled={activeTab !== 'signals'}
+                 >
+                     {useReliableSignals ? '🎯' : '🔍'} {useReliableSignals ? (isRTL ? 'سیگنال‌های معتبر' : 'Reliable Signals') : (isRTL ? 'همه سیگنال‌ها' : 'All Signals')}
+                 </Button>
+             </div>
 
             <div className="signals-tabs">
                 <button className={`signals-tab ${activeTab === 'signals' ? 'active' : ''}`} onClick={() => setActiveTab('signals')}>
@@ -815,22 +853,22 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
 
             {activeTab === 'signals' && (
                 <div className="signals-content">
-                    {signalsLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
-                    {signalsData && (
+                    {(signalsLoading || reliableSignalsLoading) && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
+                    {(useReliableSignals ? reliableSignalsData : signalsData) && (
                         <>
-                            {signalsData.longs.length > 0 && (
+                            {(useReliableSignals ? reliableSignalsData : signalsData)!.longs.length > 0 && (
                                 <div className="signals-section">
                                     <h4>🟢 {isRTL ? 'فرصت‌های لانگ' : 'Long Opportunities'}</h4>
-                                    {signalsData.longs.map((item, i) => renderSignalItem(item, i))}
+                                    {(useReliableSignals ? reliableSignalsData : signalsData)!.longs.map((item, i) => renderSignalItem(item, i))}
                                 </div>
                             )}
-                            {signalsData.shorts.length > 0 && (
+                            {(useReliableSignals ? reliableSignalsData : signalsData)!.shorts.length > 0 && (
                                 <div className="signals-section">
                                     <h4>🔴 {isRTL ? 'فرصت‌های شورت' : 'Short Opportunities'}</h4>
-                                    {signalsData.shorts.map((item, i) => renderSignalItem(item, i))}
+                                    {(useReliableSignals ? reliableSignalsData : signalsData)!.shorts.map((item, i) => renderSignalItem(item, i))}
                                 </div>
                             )}
-                            {signalsData.longs.length === 0 && signalsData.shorts.length === 0 && (
+                            {(useReliableSignals ? reliableSignalsData : signalsData)!.longs.length === 0 && (useReliableSignals ? reliableSignalsData : signalsData)!.shorts.length === 0 && (
                                 <p className="empty">{isRTL ? 'سیگنالی یافت نشد' : 'No signals found'}</p>
                             )}
                         </>
