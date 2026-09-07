@@ -755,7 +755,7 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
                      }}
                      disabled={activeTab !== 'signals'}
                  >
-                     {useReliableSignals ? '🎯' : '🔍'} {useReliableSignals ? (isRTL ? 'سیگنال‌های معتبر' : 'Reliable Signals') : (isRTL ? 'همه سیگنال‌ها' : 'All Signals')}
+                     {useReliableSignals ? '🎯' : '📊'} {useReliableSignals ? (isRTL ? 'EMA50 + لانگ/شورت' : 'EMA50 + Long/Short') : (isRTL ? 'همه سیگنال‌ها' : 'All Signals')}
                  </Button>
              </div>
 
