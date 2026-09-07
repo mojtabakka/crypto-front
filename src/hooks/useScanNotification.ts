@@ -55,6 +55,25 @@ export function useScanNotification() {
       console.error('Scan error:', data);
     });
 
+    socket.on('pumpAlert', (data: { symbol: string; severity: string; message: string; priceChange1h: number }) => {
+      playSound();
+      showNotification(`🚨 ${data.severity} Pump: ${data.symbol}`, data.message);
+      console.warn('Pump alert:', data);
+    });
+
+    socket.on('dumpAlert', (data: { symbol: string; severity: string; message: string; priceChange1h: number }) => {
+      playSound();
+      showNotification(`🔻 ${data.severity} Dump: ${data.symbol}`, data.message);
+      console.warn('Dump alert:', data);
+    });
+
+    socket.on('preMoveAlert', (data: { symbol: string; type: 'PUMP' | 'DUMP'; strength: string; message: string; confidence: number }) => {
+      playSound();
+      const emoji = data.type === 'PUMP' ? '📈' : '📉';
+      showNotification(`${emoji} ${data.strength} pre-${data.type}: ${data.symbol}`, data.message);
+      console.warn('Pre-move alert:', data);
+    });
+
     return () => {
       socket.disconnect();
     };

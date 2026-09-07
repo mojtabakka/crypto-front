@@ -12,6 +12,10 @@ import { FourHourSignalsPage } from './pages/FourHourSignalsPage';
 import { LongShortSignalsPage } from './pages/LongShortSignalsPage';
 import { VolumeProfilePage } from './pages/VolumeProfilePage';
 import { NewListingsPage } from './pages/NewListingsPage';
+import { LogsPage } from './pages/LogsPage';
+import { PumpDetectorPage } from './pages/PumpDetectorPage';
+import { DumpDetectorPage } from './pages/DumpDetectorPage';
+import { PreMoveDetectorPage } from './pages/PreMoveDetectorPage';
 import { MarketSummary } from './components/MarketSummary';
 import { VolumeChart } from './components/VolumeChart';
 import { OpenInterestChart } from './components/OpenInterestChart';
@@ -23,9 +27,9 @@ import { FuturesSymbolsButton } from './components/FuturesSymbolsButton';
 import { Loading } from './components/Loading';
 import { Button } from './components/Button';
 import { VolumeProfileTab } from './components/VolumeProfileTab';
-import { ExchangeSelector } from './components/ExchangeSelector';
+import { ExchangeDropdown } from './components/ExchangeDropdown';
 import { useI18n } from './i18n';
-import type { ExchangeName } from './api/market/market';
+import { useExchange } from './contexts/ExchangeContext';
 import './App.css';
 import './components/MarketControls.css';
 import './components/NewsList.css';
@@ -35,10 +39,12 @@ import './pages/FourHourSignalsPage.css';
 import './pages/LongShortSignalsPage.css';
 import './pages/VolumeProfilePage.css';
 import './pages/NewListingsPage.css';
-import './components/ExchangeSelector.css';
+import './pages/LogsPage.css';
+import './pages/PumpDetectorPage.css';
+import './components/ExchangeDropdown.css';
 import './pages/NewListingsPage.css';
 
-type Page = 'home' | 'detail' | 'signals' | 'watchlist' | 'four-hour-signals' | 'long-short-signals' | 'volume-profile' | 'new-listings';
+type Page = 'home' | 'detail' | 'signals' | 'watchlist' | 'four-hour-signals' | 'long-short-signals' | 'volume-profile' | 'new-listings' | 'logs' | 'pump-detector' | 'dump-detector' | 'pre-move-detector';
 type TabId = 'charts' | 'signals' | 'news' | 'events' | 'tradingview-news' | 'important-news' | 'volume-profile';
 
 interface TradingViewNewsItem {
@@ -195,6 +201,10 @@ function App() {
         if (window.location.pathname === '/long-short-signals') return 'long-short-signals';
         if (window.location.pathname === '/volume-profile') return 'volume-profile';
     if (window.location.pathname === '/new-listings') return 'new-listings';
+    if (window.location.pathname === '/logs') return 'logs';
+    if (window.location.pathname === '/pump-detector') return 'pump-detector';
+    if (window.location.pathname === '/dump-detector') return 'dump-detector';
+    if (window.location.pathname === '/pre-move-detector') return 'pre-move-detector';
         const params = new URLSearchParams(window.location.search);
         return params.get('symbol') ? 'detail' : 'home';
     };
@@ -205,11 +215,7 @@ function App() {
         return params.get('symbol') || 'BTCUSDT';
     });
     const [activeTab, setActiveTab] = useState<TabId>('charts');
-    const [exchange, setExchange] = useState<ExchangeName>(() => {
-        const params = new URLSearchParams(window.location.search);
-        const ex = params.get('exchange') as ExchangeName;
-        return ex ?? 'BINANCE';
-    });
+    const { exchange, setExchange } = useExchange();
 
     useEffect(() => {
         const handlePopState = () => {
@@ -228,6 +234,14 @@ function App() {
                 setPage('volume-profile');
             } else if (window.location.pathname === '/new-listings') {
                 setPage('new-listings');
+            } else if (window.location.pathname === '/logs') {
+                setPage('logs');
+            } else if (window.location.pathname === '/pump-detector') {
+                setPage('pump-detector');
+            } else if (window.location.pathname === '/dump-detector') {
+                setPage('dump-detector');
+            } else if (window.location.pathname === '/pre-move-detector') {
+                setPage('pre-move-detector');
             } else if (s) {
                 setSymbol(s.toUpperCase());
                 setPage('detail');
@@ -350,6 +364,26 @@ function App() {
         setPage('new-listings');
     }, []);
 
+    const handleNavigateToLogs = useCallback(() => {
+        window.history.pushState({}, '', '/logs');
+        setPage('logs');
+    }, []);
+
+    const handleNavigateToPumpDetector = useCallback(() => {
+        window.history.pushState({}, '', '/pump-detector');
+        setPage('pump-detector');
+    }, []);
+
+    const handleNavigateToDumpDetector = useCallback(() => {
+        window.history.pushState({}, '', '/dump-detector');
+        setPage('dump-detector');
+    }, []);
+
+    const handleNavigateToPreMoveDetector = useCallback(() => {
+        window.history.pushState({}, '', '/pre-move-detector');
+        setPage('pre-move-detector');
+    }, []);
+
     if (page === 'home') {
         return (
             <div className="app-container">
@@ -363,7 +397,14 @@ function App() {
                                 {t.app.subtitle}
                             </p>
                         </div>
-                        <LanguageSwitcher />
+                        <div className="header-actions">
+                            <ExchangeDropdown
+                                selected={exchange}
+                                onChange={setExchange}
+                                isRTL={isRTL}
+                            />
+                            <LanguageSwitcher />
+                        </div>
                     </div>
                     <FuturesSymbolsButton />
                     <div className="home-buttons">
@@ -443,6 +484,59 @@ function App() {
                         >
                             {isRTL ? 'ارزهای جدید' : 'New Listings'}
                         </Button>
+                        <Button
+                            variant="purple"
+                            size="md"
+                            icon={
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14 2 14 8 20 8"/>
+                                </svg>
+                            }
+                            onClick={handleNavigateToLogs}
+                        >
+                            {isRTL ? 'لاگ‌ها' : 'Logs'}
+                        </Button>
+                        <Button
+                            variant="purple"
+                            size="md"
+                            icon={
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M5.52 19c.64-2.2 1.84-3 3.22-3h6.52c1.38 0 2.58.8 3.22 3"/>
+                                    <circle cx="12" cy="6" r="3"/>
+                                </svg>
+                            }
+                            onClick={handleNavigateToPumpDetector}
+                        >
+                            {isRTL ? 'ردیاب پامپ' : 'Pump Detector'}
+                        </Button>
+                        <Button
+                            variant="purple"
+                            size="md"
+                            icon={
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M22 17.08V19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-1.92"/>
+                                    <path d="M12 17V3"/>
+                                    <path d="M5 10l7 7 7-7"/>
+                                </svg>
+                            }
+                            onClick={handleNavigateToDumpDetector}
+                        >
+                            {isRTL ? 'ردیاب دامپ' : 'Dump Detector'}
+                        </Button>
+                        <Button
+                            variant="purple"
+                            size="md"
+                            icon={
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M12 6v6l4 2"/>
+                                </svg>
+                            }
+                            onClick={handleNavigateToPreMoveDetector}
+                        >
+                            {isRTL ? 'پیش‌بینی حرکت' : 'Pre-Move'}
+                        </Button>
                     </div>
                 </div>
                 <HomePage onSearch={handleSearch} />
@@ -487,6 +581,22 @@ function App() {
 
     if (page === 'new-listings') {
         return <NewListingsPage />;
+    }
+
+    if (page === 'logs') {
+        return <LogsPage />;
+    }
+
+    if (page === 'pump-detector') {
+        return <PumpDetectorPage />;
+    }
+
+    if (page === 'dump-detector') {
+        return <DumpDetectorPage />;
+    }
+
+    if (page === 'pre-move-detector') {
+        return <PreMoveDetectorPage />;
     }
 
     const tabs: { id: TabId; label: string; icon: string }[] =
@@ -575,7 +685,7 @@ function App() {
                 <h1 className="detail-title">
                     {symbol}
                 </h1>
-                <ExchangeSelector
+                <ExchangeDropdown
                     selected={exchange}
                     onChange={setExchange}
                     isRTL={isRTL}

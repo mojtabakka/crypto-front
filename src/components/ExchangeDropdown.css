@@ -1,0 +1,129 @@
+.exchange-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.exchange-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: #f1f5f9;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 140px;
+  outline: none;
+}
+
+.exchange-dropdown-trigger:hover {
+  background: #334155;
+  border-color: #4c1d95;
+}
+
+.exchange-dropdown-trigger:focus {
+  border-color: #a78bfa;
+  box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.2);
+}
+
+.exchange-dropdown-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.3);
+}
+
+.exchange-dropdown-label {
+  flex: 1;
+  text-align: left;
+}
+
+[dir="rtl"] .exchange-dropdown-label {
+  text-align: right;
+}
+
+.exchange-dropdown-arrow {
+  color: #94a3b8;
+  transition: transform 0.2s;
+}
+
+.exchange-dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.exchange-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  z-index: 1000;
+  min-width: 160px;
+  animation: dropdownFade 0.15s ease-out;
+}
+
+[dir="rtl"] .exchange-dropdown-menu {
+  left: 0;
+  right: 0;
+}
+
+@keyframes dropdownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.exchange-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+}
+
+[dir="rtl"] .exchange-dropdown-item {
+  text-align: right;
+}
+
+.exchange-dropdown-item:hover {
+  background: #334155;
+  color: #f1f5f9;
+}
+
+.exchange-dropdown-item.active {
+  background: rgba(76, 29, 149, 0.3);
+  color: #f1f5f9;
+  font-weight: 600;
+}
+
+.exchange-dropdown-check {
+  margin-left: auto;
+  color: #a78bfa;
+}
+
+[dir="rtl"] .exchange-dropdown-check {
+  margin-left: 0;
+  margin-right: auto;
+}

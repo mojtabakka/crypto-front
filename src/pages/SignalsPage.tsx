@@ -47,31 +47,35 @@ interface ReapproachSignal {
 }
 
 async function fetchLongs(): Promise<{ longs: SymbolSignal[]; shorts: SymbolSignal[] }> {
-    const response = await fetch('http://localhost:3000/market-scanner?limit=30');
+    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
+    const response = await fetch(`http://localhost:3000/market-scanner/reliable?limit=30&exchange=${ex}`);
     if (!response.ok) throw new Error('Failed to fetch');
     return response.json();
 }
 
 async function fetchPullbacks(): Promise<{ longs: PullbackSignal[]; shorts: PullbackSignal[] }> {
-    const response = await fetch('http://localhost:3000/market-scanner/pullbacks?limit=30');
+    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
+    const response = await fetch(`http://localhost:3000/market-scanner/pullbacks?limit=30&exchange=${ex}`);
     if (!response.ok) throw new Error('Failed to fetch pullbacks');
     return response.json();
 }
 
 async function fetchReapproach(): Promise<{ longs: ReapproachSignal[]; shorts: ReapproachSignal[] }> {
-    const response = await fetch('http://localhost:3000/market-scanner/reapproach?limit=30');
+    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
+    const response = await fetch(`http://localhost:3000/market-scanner/reapproach?limit=30&exchange=${ex}`);
     if (!response.ok) throw new Error('Failed to fetch reapproach');
     return response.json();
 }
 
 async function fetchWeeklyPullbacks(): Promise<{ longs: PullbackSignal[]; shorts: PullbackSignal[] }> {
-    const response = await fetch('http://localhost:3000/market-scanner/weekly-pullbacks?limit=30');
+    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
+    const response = await fetch(`http://localhost:3000/market-scanner/weekly-pullbacks?limit=30&exchange=${ex}`);
     if (!response.ok) throw new Error('Failed to fetch weekly pullbacks');
     return response.json();
 }
 
 async function fetchWeeklyReapproach(): Promise<{ longs: ReapproachSignal[]; shorts: ReapproachSignal[] }> {
-    const response = await fetch('http://localhost:3000/market-scanner/weekly-reapproach?limit=30');
+    const response = await fetch('http://localhost:3000/market-scanner/weekly-reapproach?limit=30&exchange=${ex}');
     if (!response.ok) throw new Error('Failed to fetch weekly reapproach');
     return response.json();
 }
@@ -96,7 +100,8 @@ async function fetchDailyAboveEma50Long(): Promise<{
         fundingRate: number;
     }>;
 }> {
-    const response = await fetch('http://localhost:3000/market-scanner/daily-above-ema50-long?limit=20');
+    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
+    const response = await fetch(`http://localhost:3000/market-scanner/daily-above-ema50-long?limit=20&exchange=${ex}`);
     if (!response.ok) throw new Error('Failed to fetch daily above EMA50 with long conditions');
     return response.json();
 }
@@ -115,7 +120,8 @@ async function fetchWeeklyAboveEma50Long(): Promise<{
         fundingRate: number;
     }>;
 }> {
-    const response = await fetch('http://localhost:3000/market-scanner/weekly-above-ema50-long?limit=20');
+    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
+    const response = await fetch(`http://localhost:3000/market-scanner/weekly-above-ema50-long?limit=20&exchange=${ex}`);
     if (!response.ok) throw new Error('Failed to fetch weekly above EMA50 with long conditions');
     return response.json();
 }
@@ -125,7 +131,8 @@ async function fetch4hPullbacks(): Promise<{
     shorts: PullbackSignal[];
     all: PullbackSignal[];
 }> {
-    const response = await fetch('http://localhost:3000/market-scanner/4h-pullbacks?limit=20');
+    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
+    const response = await fetch(`http://localhost:3000/market-scanner/4h-pullbacks?limit=20&exchange=${ex}`);
     if (!response.ok) throw new Error('Failed to fetch 4h pullbacks');
     return response.json();
 }
@@ -135,7 +142,8 @@ async function fetchMonthlyPullbacks(): Promise<{
     shorts: PullbackSignal[];
     all: PullbackSignal[];
 }> {
-    const response = await fetch('http://localhost:3000/market-scanner/monthly-pullbacks?limit=20');
+    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
+    const response = await fetch(`http://localhost:3000/market-scanner/monthly-pullbacks?limit=20&exchange=${ex}`);
     if (!response.ok) throw new Error('Failed to fetch monthly pullbacks');
     return response.json();
 }
@@ -145,7 +153,8 @@ async function fetch4hReapproach(): Promise<{
     shorts: ReapproachSignal[];
     all: ReapproachSignal[];
 }> {
-    const response = await fetch('http://localhost:3000/market-scanner/4h-reapproach?limit=20');
+    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
+    const response = await fetch(`http://localhost:3000/market-scanner/4h-reapproach?limit=20&exchange=${ex}`);
     if (!response.ok) throw new Error('Failed to fetch 4h reapproach');
     return response.json();
 }
@@ -155,8 +164,31 @@ async function fetchMonthlyReapproach(): Promise<{
     shorts: ReapproachSignal[];
     all: ReapproachSignal[];
 }> {
-    const response = await fetch('http://localhost:3000/market-scanner/monthly-reapproach?limit=20');
+    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
+    const response = await fetch(`http://localhost:3000/market-scanner/monthly-reapproach?limit=20&exchange=${ex}`);
     if (!response.ok) throw new Error('Failed to fetch monthly reapproach');
+    return response.json();
+}
+
+async function fetchEma21Pullbacks(interval: '1d' | '4h' | '1w'): Promise<{
+    longs: PullbackSignal[];
+    shorts: PullbackSignal[];
+    all: PullbackSignal[];
+}> {
+    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
+    const response = await fetch(`http://localhost:3000/market-scanner/pullbacks-ema21?limit=30&exchange=${ex}&interval=${interval}`);
+    if (!response.ok) throw new Error(`Failed to fetch EMA21 ${interval} pullbacks`);
+    return response.json();
+}
+
+async function fetchEma21Reapproach(interval: '1d' | '4h' | '1w'): Promise<{
+    longs: ReapproachSignal[];
+    shorts: ReapproachSignal[];
+    all: ReapproachSignal[];
+}> {
+    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
+    const response = await fetch(`http://localhost:3000/market-scanner/reapproach-ema21?limit=30&exchange=${ex}&interval=${interval}`);
+    if (!response.ok) throw new Error(`Failed to fetch EMA21 ${interval} reapproach`);
     return response.json();
 }
 
@@ -251,7 +283,7 @@ interface SignalsPageProps {
     onBack: () => void;
 }
 
-type Tab = 'signals' | 'pullbacks' | 'reapproach' | 'weekly-pullbacks' | 'weekly-reapproach' | 'weekly-above-ema50' | 'daily-above-ema50-long' | 'weekly-above-ema50-long' | '4h-pullbacks' | '4h-reapproach' | 'monthly-pullbacks' | 'monthly-reapproach';
+type Tab = 'signals' | 'pullbacks' | 'reapproach' | 'weekly-pullbacks' | 'weekly-reapproach' | 'weekly-above-ema50' | 'daily-above-ema50-long' | 'weekly-above-ema50-long' | '4h-pullbacks' | '4h-reapproach' | 'monthly-pullbacks' | 'monthly-reapproach' | 'ema21-daily-pullback' | 'ema21-daily-reapproach' | 'ema21-4h-pullback' | 'ema21-4h-reapproach' | 'ema21-weekly-pullback' | 'ema21-weekly-reapproach';
 
 const Icons = {
     trending: (
@@ -321,6 +353,11 @@ const Icons = {
             <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
             <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
             <line x1="12" y1="22.08" x2="12" y2="12"/>
+        </svg>
+    ),
+    ema21: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M2 12h3l3-9 4 18 3-9h7"/>
         </svg>
     ),
     aboveEma: (
@@ -463,6 +500,48 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
         staleTime: 120000,
     });
 
+    const { data: ema21DailyPullbackData, isLoading: ema21DailyPullbackLoading, refetch: refetchEma21DailyPullback } = useQuery({
+        queryKey: ['ema21-daily-pullback'],
+        queryFn: () => fetchEma21Pullbacks('1d'),
+        enabled: activeTab === 'ema21-daily-pullback',
+        staleTime: 300000,
+    });
+
+    const { data: ema21DailyReapproachData, isLoading: ema21DailyReapproachLoading, refetch: refetchEma21DailyReapproach } = useQuery({
+        queryKey: ['ema21-daily-reapproach'],
+        queryFn: () => fetchEma21Reapproach('1d'),
+        enabled: activeTab === 'ema21-daily-reapproach',
+        staleTime: 300000,
+    });
+
+    const { data: ema214hPullbackData, isLoading: ema214hPullbackLoading, refetch: refetchEma214hPullback } = useQuery({
+        queryKey: ['ema21-4h-pullback'],
+        queryFn: () => fetchEma21Pullbacks('4h'),
+        enabled: activeTab === 'ema21-4h-pullback',
+        staleTime: 180000,
+    });
+
+    const { data: ema214hReapproachData, isLoading: ema214hReapproachLoading, refetch: refetchEma214hReapproach } = useQuery({
+        queryKey: ['ema21-4h-reapproach'],
+        queryFn: () => fetchEma21Reapproach('4h'),
+        enabled: activeTab === 'ema21-4h-reapproach',
+        staleTime: 180000,
+    });
+
+    const { data: ema21WeeklyPullbackData, isLoading: ema21WeeklyPullbackLoading, refetch: refetchEma21WeeklyPullback } = useQuery({
+        queryKey: ['ema21-weekly-pullback'],
+        queryFn: () => fetchEma21Pullbacks('1w'),
+        enabled: activeTab === 'ema21-weekly-pullback',
+        staleTime: 600000,
+    });
+
+    const { data: ema21WeeklyReapproachData, isLoading: ema21WeeklyReapproachLoading, refetch: refetchEma21WeeklyReapproach } = useQuery({
+        queryKey: ['ema21-weekly-reapproach'],
+        queryFn: () => fetchEma21Reapproach('1w'),
+        enabled: activeTab === 'ema21-weekly-reapproach',
+        staleTime: 600000,
+    });
+
     const handleRefresh = () => {
         if (activeTab === 'signals') refetchSignals();
         else if (activeTab === 'pullbacks') refetchPullbacks();
@@ -475,10 +554,16 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
         else if (activeTab === '4h-reapproach') refetchReapproach4h();
         else if (activeTab === 'monthly-pullbacks') refetchMonthlyPullbacks();
         else if (activeTab === 'monthly-reapproach') refetchMonthlyReapproach();
+        else if (activeTab === 'ema21-daily-pullback') refetchEma21DailyPullback();
+        else if (activeTab === 'ema21-daily-reapproach') refetchEma21DailyReapproach();
+        else if (activeTab === 'ema21-4h-pullback') refetchEma214hPullback();
+        else if (activeTab === 'ema21-4h-reapproach') refetchEma214hReapproach();
+        else if (activeTab === 'ema21-weekly-pullback') refetchEma21WeeklyPullback();
+        else if (activeTab === 'ema21-weekly-reapproach') refetchEma21WeeklyReapproach();
         else refetchWeeklyAboveEma50Long();
     };
 
-    const isLoading = signalsLoading || pullbacksLoading || reapproachLoading || weeklyPullbacksLoading || weeklyReapproachLoading || weeklyAboveEma50Loading || dailyAboveEma50LongLoading || weeklyAboveEma50LongLoading || pullbacks4hLoading || monthlyPullbacksLoading || monthlyReapproachLoading || reapproach4hLoading;
+    const isLoading = signalsLoading || pullbacksLoading || reapproachLoading || weeklyPullbacksLoading || weeklyReapproachLoading || weeklyAboveEma50Loading || dailyAboveEma50LongLoading || weeklyAboveEma50LongLoading || pullbacks4hLoading || monthlyPullbacksLoading || monthlyReapproachLoading || reapproach4hLoading || ema21DailyPullbackLoading || ema21DailyReapproachLoading || ema214hPullbackLoading || ema214hReapproachLoading || ema21WeeklyPullbackLoading || ema21WeeklyReapproachLoading;
 
     const handleOpenTradingView = (symbol: string) => {
         window.open(`https://www.tradingview.com/symbols/${symbol}/`, '_blank');
@@ -680,6 +765,36 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
                     {Icons.reapproachMonthly}
                     <span>{isRTL ? 'برخورد ماهانه' : 'Monthly Reapproach'}</span>
                     <span className="tab-subtitle">{isRTL ? 'EMA50' : 'EMA50'}</span>
+                </button>
+                <button className={`signals-tab ${activeTab === 'ema21-daily-pullback' ? 'active' : ''}`} onClick={() => setActiveTab('ema21-daily-pullback')}>
+                    {Icons.ema21}
+                    <span>{isRTL ? 'پولبک روزانه' : 'Daily Pullback'}</span>
+                    <span className="tab-subtitle">{isRTL ? 'EMA21' : 'EMA21'}</span>
+                </button>
+                <button className={`signals-tab ${activeTab === 'ema21-daily-reapproach' ? 'active' : ''}`} onClick={() => setActiveTab('ema21-daily-reapproach')}>
+                    {Icons.ema21}
+                    <span>{isRTL ? 'برخورد روزانه' : 'Daily Reapproach'}</span>
+                    <span className="tab-subtitle">{isRTL ? 'EMA21' : 'EMA21'}</span>
+                </button>
+                <button className={`signals-tab ${activeTab === 'ema21-4h-pullback' ? 'active' : ''}`} onClick={() => setActiveTab('ema21-4h-pullback')}>
+                    {Icons.ema21}
+                    <span>{isRTL ? 'پولبک ۴ساعته' : '4H Pullback'}</span>
+                    <span className="tab-subtitle">{isRTL ? 'EMA21' : 'EMA21'}</span>
+                </button>
+                <button className={`signals-tab ${activeTab === 'ema21-4h-reapproach' ? 'active' : ''}`} onClick={() => setActiveTab('ema21-4h-reapproach')}>
+                    {Icons.ema21}
+                    <span>{isRTL ? 'برخورد ۴ساعته' : '4H Reapproach'}</span>
+                    <span className="tab-subtitle">{isRTL ? 'EMA21' : 'EMA21'}</span>
+                </button>
+                <button className={`signals-tab ${activeTab === 'ema21-weekly-pullback' ? 'active' : ''}`} onClick={() => setActiveTab('ema21-weekly-pullback')}>
+                    {Icons.ema21}
+                    <span>{isRTL ? 'پولبک هفتگی' : 'Weekly Pullback'}</span>
+                    <span className="tab-subtitle">{isRTL ? 'EMA21' : 'EMA21'}</span>
+                </button>
+                <button className={`signals-tab ${activeTab === 'ema21-weekly-reapproach' ? 'active' : ''}`} onClick={() => setActiveTab('ema21-weekly-reapproach')}>
+                    {Icons.ema21}
+                    <span>{isRTL ? 'برخورد هفتگی' : 'Weekly Reapproach'}</span>
+                    <span className="tab-subtitle">{isRTL ? 'EMA21' : 'EMA21'}</span>
                 </button>
                 <button className={`signals-tab ${activeTab === 'weekly-above-ema50' ? 'active' : ''}`} onClick={() => setActiveTab('weekly-above-ema50')}>
                     {Icons.aboveEma}
@@ -1063,6 +1178,156 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
                             )}
                              {monthlyReapproachData.longs.length === 0 && monthlyReapproachData.shorts.length === 0 && (
                                 <p className="empty">{isRTL ? 'سیگنالی یافت نشد' : 'No monthly reapproach'}</p>
+                            )}
+                        </>
+                    )}
+                </div>
+            )}
+
+            {activeTab === 'ema21-daily-pullback' && (
+                <div className="signals-content">
+                    {ema21DailyPullbackLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
+                    {ema21DailyPullbackData && (
+                        <>
+                            {ema21DailyPullbackData.longs.length > 0 && (
+                                <div className="signals-section">
+                                    <h4>🔼 {isRTL ? 'پولبک صعودی روزانه (EMA21)' : 'Daily Bullish Pullback (EMA21)'}</h4>
+                                    {ema21DailyPullbackData.longs.map((item, i) => renderPullbackItem(item, i))}
+                                </div>
+                            )}
+                            {ema21DailyPullbackData.shorts.length > 0 && (
+                                <div className="signals-section">
+                                    <h4>🔽 {isRTL ? 'پولبک نزولی روزانه (EMA21)' : 'Daily Bearish Pullback (EMA21)'}</h4>
+                                    {ema21DailyPullbackData.shorts.map((item, i) => renderPullbackItem(item, i))}
+                                </div>
+                            )}
+                            {ema21DailyPullbackData.longs.length === 0 && ema21DailyPullbackData.shorts.length === 0 && (
+                                <p className="empty">{isRTL ? 'پولبکی یافت نشد' : 'No daily pullbacks'}</p>
+                            )}
+                        </>
+                    )}
+                </div>
+            )}
+
+            {activeTab === 'ema21-daily-reapproach' && (
+                <div className="signals-content">
+                    {ema21DailyReapproachLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
+                    {ema21DailyReapproachData && (
+                        <>
+                            {ema21DailyReapproachData.longs.length > 0 && (
+                                <div className="signals-section">
+                                    <h4>🔼 {isRTL ? 'برخورد صعودی روزانه (EMA21)' : 'Daily Bullish Reapproach (EMA21)'}</h4>
+                                    {ema21DailyReapproachData.longs.map((item, i) => renderReapproachItem(item, i))}
+                                </div>
+                            )}
+                            {ema21DailyReapproachData.shorts.length > 0 && (
+                                <div className="signals-section">
+                                    <h4>🔽 {isRTL ? 'برخورد نزولی روزانه (EMA21)' : 'Daily Bearish Reapproach (EMA21)'}</h4>
+                                    {ema21DailyReapproachData.shorts.map((item, i) => renderReapproachItem(item, i))}
+                                </div>
+                            )}
+                            {ema21DailyReapproachData.longs.length === 0 && ema21DailyReapproachData.shorts.length === 0 && (
+                                <p className="empty">{isRTL ? 'سیگنالی یافت نشد' : 'No daily reapproach'}</p>
+                            )}
+                        </>
+                    )}
+                </div>
+            )}
+
+            {activeTab === 'ema21-4h-pullback' && (
+                <div className="signals-content">
+                    {ema214hPullbackLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
+                    {ema214hPullbackData && (
+                        <>
+                            {ema214hPullbackData.longs.length > 0 && (
+                                <div className="signals-section">
+                                    <h4>🔼 {isRTL ? 'پولبک صعودی ۴ساعته (EMA21)' : '4H Bullish Pullback (EMA21)'}</h4>
+                                    {ema214hPullbackData.longs.map((item, i) => renderPullbackItem(item, i))}
+                                </div>
+                            )}
+                            {ema214hPullbackData.shorts.length > 0 && (
+                                <div className="signals-section">
+                                    <h4>🔽 {isRTL ? 'پولبک نزولی ۴ساعته (EMA21)' : '4H Bearish Pullback (EMA21)'}</h4>
+                                    {ema214hPullbackData.shorts.map((item, i) => renderPullbackItem(item, i))}
+                                </div>
+                            )}
+                            {ema214hPullbackData.longs.length === 0 && ema214hPullbackData.shorts.length === 0 && (
+                                <p className="empty">{isRTL ? 'پولبکی یافت نشد' : 'No 4H pullbacks'}</p>
+                            )}
+                        </>
+                    )}
+                </div>
+            )}
+
+            {activeTab === 'ema21-4h-reapproach' && (
+                <div className="signals-content">
+                    {ema214hReapproachLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
+                    {ema214hReapproachData && (
+                        <>
+                            {ema214hReapproachData.longs.length > 0 && (
+                                <div className="signals-section">
+                                    <h4>🔼 {isRTL ? 'برخورد صعودی ۴ساعته (EMA21)' : '4H Bullish Reapproach (EMA21)'}</h4>
+                                    {ema214hReapproachData.longs.map((item, i) => renderReapproachItem(item, i))}
+                                </div>
+                            )}
+                            {ema214hReapproachData.shorts.length > 0 && (
+                                <div className="signals-section">
+                                    <h4>🔽 {isRTL ? 'برخورد نزولی ۴ساعته (EMA21)' : '4H Bearish Reapproach (EMA21)'}</h4>
+                                    {ema214hReapproachData.shorts.map((item, i) => renderReapproachItem(item, i))}
+                                </div>
+                            )}
+                            {ema214hReapproachData.longs.length === 0 && ema214hReapproachData.shorts.length === 0 && (
+                                <p className="empty">{isRTL ? 'سیگنالی یافت نشد' : 'No 4H reapproach'}</p>
+                            )}
+                        </>
+                    )}
+                </div>
+            )}
+
+            {activeTab === 'ema21-weekly-pullback' && (
+                <div className="signals-content">
+                    {ema21WeeklyPullbackLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
+                    {ema21WeeklyPullbackData && (
+                        <>
+                            {ema21WeeklyPullbackData.longs.length > 0 && (
+                                <div className="signals-section">
+                                    <h4>🔼 {isRTL ? 'پولبک صعودی هفتگی (EMA21)' : 'Weekly Bullish Pullback (EMA21)'}</h4>
+                                    {ema21WeeklyPullbackData.longs.map((item, i) => renderPullbackItem(item, i))}
+                                </div>
+                            )}
+                            {ema21WeeklyPullbackData.shorts.length > 0 && (
+                                <div className="signals-section">
+                                    <h4>🔽 {isRTL ? 'پولبک نزولی هفتگی (EMA21)' : 'Weekly Bearish Pullback (EMA21)'}</h4>
+                                    {ema21WeeklyPullbackData.shorts.map((item, i) => renderPullbackItem(item, i))}
+                                </div>
+                            )}
+                            {ema21WeeklyPullbackData.longs.length === 0 && ema21WeeklyPullbackData.shorts.length === 0 && (
+                                <p className="empty">{isRTL ? 'پولبکی یافت نشد' : 'No weekly pullbacks'}</p>
+                            )}
+                        </>
+                    )}
+                </div>
+            )}
+
+            {activeTab === 'ema21-weekly-reapproach' && (
+                <div className="signals-content">
+                    {ema21WeeklyReapproachLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
+                    {ema21WeeklyReapproachData && (
+                        <>
+                            {ema21WeeklyReapproachData.longs.length > 0 && (
+                                <div className="signals-section">
+                                    <h4>🔼 {isRTL ? 'برخورد صعودی هفتگی (EMA21)' : 'Weekly Bullish Reapproach (EMA21)'}</h4>
+                                    {ema21WeeklyReapproachData.longs.map((item, i) => renderReapproachItem(item, i))}
+                                </div>
+                            )}
+                            {ema21WeeklyReapproachData.shorts.length > 0 && (
+                                <div className="signals-section">
+                                    <h4>🔽 {isRTL ? 'برخورد نزولی هفتگی (EMA21)' : 'Weekly Bearish Reapproach (EMA21)'}</h4>
+                                    {ema21WeeklyReapproachData.shorts.map((item, i) => renderReapproachItem(item, i))}
+                                </div>
+                            )}
+                            {ema21WeeklyReapproachData.longs.length === 0 && ema21WeeklyReapproachData.shorts.length === 0 && (
+                                <p className="empty">{isRTL ? 'سیگنالی یافت نشد' : 'No weekly reapproach'}</p>
                             )}
                         </>
                     )}

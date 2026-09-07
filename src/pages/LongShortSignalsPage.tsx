@@ -1,11 +1,14 @@
+import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useI18n } from '../i18n';
+import { useExchange } from '../contexts/ExchangeContext';
 import { Loading } from '../components/Loading';
 import './LongShortSignalsPage.css';
 
 interface LongShortSignal {
   id: number;
   symbol: string;
+  exchange?: string;
   direction: 'LONG' | 'SHORT';
   score: number;
   priceChange: number | null;
@@ -24,22 +27,35 @@ interface LongShortSignalsResponse {
   shorts: LongShortSignal[];
   lastUpdate: string | null;
   totalCount: number;
+  exchange?: string;
 }
 
 export function LongShortSignalsPage() {
   const { isRTL } = useI18n();
+  const { exchange } = useExchange();
 
   const { data, isLoading, isError, refetch } = useQuery<LongShortSignalsResponse>({
-    queryKey: ['long-short-signals'],
+    queryKey: ['long-short-signals', exchange],
     queryFn: async () => {
-      const res = await fetch('http://localhost:3000/long-short-signals');
+      const res = await fetch(`http://localhost:3000/long-short-signals?exchange=${exchange}`);
       if (!res.ok) throw new Error('Failed to fetch signals');
-      return res.json();
+      const data = await res.json();
+      if (data.totalCount === 0) {
+        const scanRes = await fetch(`http://localhost:3000/long-short-signals/scan?exchange=${exchange}`);
+        if (scanRes.ok) {
+          return scanRes.json();
+        }
+      }
+      return data;
     },
     staleTime: 0,
     refetchOnWindowFocus: true,
     refetchInterval: 300000,
   });
+
+  useEffect(() => {
+    refetch();
+  }, [exchange, refetch]);
 
   if (isLoading) return <Loading isRTL={isRTL} />;
   if (isError) {

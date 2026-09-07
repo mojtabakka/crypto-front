@@ -1,17 +1,3 @@
-export interface MarketCandle {
-    time: number;
-
-    open: number;
-    high: number;
-    low: number;
-    close: number;
-
-    volume: number;
-    quoteVolume: number;
-
-    trades: number;
-}
-
 export type ExchangeName =
     | 'BINANCE'
     | 'OKX'
@@ -21,13 +7,29 @@ export type ExchangeName =
     | 'BINGX'
     | 'CRYPTOCOM';
 
+export function getCurrentExchange(): ExchangeName {
+    if (typeof window === 'undefined') return 'BINANCE';
+    const saved = localStorage.getItem('selected_exchange') as ExchangeName;
+    return saved ?? 'BINANCE';
+}
+
+export interface MarketCandle {
+    time: number;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume: number;
+    quoteVolume: number;
+    trades: number;
+}
+
 export interface GetMarketDataParams {
     symbol: string;
     interval: string;
     range: string;
     exchange?: ExchangeName;
 }
-
 
 export interface OpenInterestData {
     time: number;
@@ -68,20 +70,16 @@ export async function getMarketData({
     symbol,
     interval,
     range,
-    exchange = 'BINANCE',
+    exchange,
 }: GetMarketDataParams): Promise<MarketCandle[]> {
+    const ex = exchange ?? getCurrentExchange();
     const response = await fetch(
-        `http://localhost:3000/market/${symbol}?interval=${interval}&range=${range}&exchange=${exchange}`,
+        `http://localhost:3000/market/${symbol}?interval=${interval}&range=${range}&exchange=${ex}`,
     );
 
     if (!response.ok) {
-        const error =
-            await response.json().catch(() => null);
-
-        throw new Error(
-            error?.message ||
-            'Failed to fetch market data',
-        );
+        const error = await response.json().catch(() => null);
+        throw new Error(error?.message || 'Failed to fetch market data');
     }
 
     return response.json();
@@ -94,15 +92,13 @@ export async function getOpenInterest({
     symbol: string;
     range: string;
 }): Promise<OpenInterestData[]> {
-    const response =
-        await fetch(
-            `http://localhost:3000/market/${symbol}/open-interest?range=${range}`,
-        );
+    const exchange = getCurrentExchange();
+    const response = await fetch(
+        `http://localhost:3000/market/${symbol}/open-interest?range=${range}&exchange=${exchange}`,
+    );
 
     if (!response.ok) {
-        throw new Error(
-            'Failed to fetch open interest',
-        );
+        throw new Error('Failed to fetch open interest');
     }
 
     return response.json();
@@ -115,15 +111,13 @@ export async function getFundingRate({
     symbol: string;
     range: string;
 }): Promise<FundingRateData[]> {
-    const response =
-        await fetch(
-            `http://localhost:3000/market/${symbol}/funding-rate?range=${range}`,
-        );
+    const exchange = getCurrentExchange();
+    const response = await fetch(
+        `http://localhost:3000/market/${symbol}/funding-rate?range=${range}&exchange=${exchange}`,
+    );
 
     if (!response.ok) {
-        throw new Error(
-            'Failed to fetch funding rate',
-        );
+        throw new Error('Failed to fetch funding rate');
     }
 
     return response.json();
@@ -134,15 +128,13 @@ export async function getMarketSignal({
 }: {
     symbol: string;
 }): Promise<MarketSignal> {
-    const response =
-        await fetch(
-            `http://localhost:3000/market-signal?symbol=${symbol}`,
-        );
+    const exchange = getCurrentExchange();
+    const response = await fetch(
+        `http://localhost:3000/market-signal?symbol=${symbol}&exchange=${exchange}`,
+    );
 
     if (!response.ok) {
-        throw new Error(
-            'Failed to fetch market signal',
-        );
+        throw new Error('Failed to fetch market signal');
     }
 
     return response.json();
@@ -180,31 +172,16 @@ export async function getNews({
     limit,
 }: NewsQueryDto): Promise<CryptoNewsResponse> {
     const params = new URLSearchParams();
+    if (symbol) params.set('symbol', symbol);
+    if (lang) params.set('lang', lang);
+    if (limit) params.set('limit', String(limit));
 
-    if (symbol) {
-        params.set('symbol', symbol);
-    }
-
-    if (lang) {
-        params.set('lang', lang);
-    }
-
-    if (limit) {
-        params.set(
-            'limit',
-            String(limit),
-        );
-    }
-
-    const response =
-        await fetch(
-            `http://localhost:3000/news?${params.toString()}`,
-        );
+    const response = await fetch(
+        `http://localhost:3000/news?${params.toString()}`,
+    );
 
     if (!response.ok) {
-        throw new Error(
-            'Failed to fetch news',
-        );
+        throw new Error('Failed to fetch news');
     }
 
     return response.json();
@@ -239,19 +216,14 @@ export async function getEvents({
     const params = new URLSearchParams();
     params.set('symbol', symbol);
     params.set('limit', String(limit));
-    if (lang) {
-        params.set('lang', lang);
-    }
+    if (lang) params.set('lang', lang);
 
-    const response =
-        await fetch(
-            `http://localhost:3000/news/events?${params.toString()}`,
-        );
+    const response = await fetch(
+        `http://localhost:3000/news/events?${params.toString()}`,
+    );
 
     if (!response.ok) {
-        throw new Error(
-            'Failed to fetch events',
-        );
+        throw new Error('Failed to fetch events');
     }
 
     return response.json();
@@ -284,9 +256,7 @@ export async function fetchFuturesSymbols(): Promise<FuturesSymbolsResponse> {
     );
 
     if (!response.ok) {
-        throw new Error(
-            'Failed to fetch futures symbols',
-        );
+        throw new Error('Failed to fetch futures symbols');
     }
 
     return response.json();
@@ -298,9 +268,7 @@ export async function getStoredFuturesSymbols(): Promise<FuturesSymbolsResponse 
     );
 
     if (!response.ok) {
-        throw new Error(
-            'Failed to get stored futures symbols',
-        );
+        throw new Error('Failed to get stored futures symbols');
     }
 
     return response.json();
