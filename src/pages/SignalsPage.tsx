@@ -46,6 +46,24 @@ interface ReapproachSignal {
     ema50: number | null;
 }
 
+interface FakeSignalRisk {
+    symbol: string;
+    fakeSignalProbability: number;
+    riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+    rsi: number | null;
+    priceVsEma50: number | null;
+    volumeRatio: number | null;
+    momentum: number | null;
+    direction: 'LONG' | 'SHORT';
+}
+
+interface FakeSignalScanResult {
+    risks: FakeSignalRisk[];
+    scanned: number;
+    duration: number;
+    timestamp: string;
+}
+
 async function fetchLongs(): Promise<{ longs: SymbolSignal[]; shorts: SymbolSignal[] }> {
     const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
     const response = await fetch(`http://localhost:3000/market-scanner?limit=30&exchange=${ex}`);
@@ -57,6 +75,13 @@ async function fetchReliableLongs(): Promise<{ longs: SymbolSignal[]; shorts: Sy
     const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
     const response = await fetch(`http://localhost:3000/market-scanner/reliable?limit=30&exchange=${ex}`);
     if (!response.ok) throw new Error('Failed to fetch reliable signals');
+    return response.json();
+}
+
+async function fetchFakeSignals(): Promise<FakeSignalScanResult> {
+    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
+    const response = await fetch(`http://localhost:3000/market-scanner/fake-signals?limit=50&exchange=${ex}`);
+    if (!response.ok) throw new Error('Failed to fetch fake signals');
     return response.json();
 }
 
@@ -82,7 +107,8 @@ async function fetchWeeklyPullbacks(): Promise<{ longs: PullbackSignal[]; shorts
 }
 
 async function fetchWeeklyReapproach(): Promise<{ longs: ReapproachSignal[]; shorts: ReapproachSignal[] }> {
-    const response = await fetch('http://localhost:3000/market-scanner/weekly-reapproach?limit=30&exchange=${ex}');
+    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
+    const response = await fetch(`http://localhost:3000/market-scanner/weekly-reapproach?limit=30&exchange=${ex}`);
     if (!response.ok) throw new Error('Failed to fetch weekly reapproach');
     return response.json();
 }
@@ -438,6 +464,17 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
         staleTime: 60000,
     });
 
+    const { data: fakeSignalsData, isLoading: fakeSignalsLoading } = useQuery({
+        queryKey: ['fake-signals'],
+        queryFn: fetchFakeSignals,
+        enabled: activeTab === 'signals',
+        staleTime: 120000,
+    });
+
+    const getFakeSignalRisk = (symbol: string) => {
+        return fakeSignalsData?.risks.find((risk) => risk.symbol === symbol);
+    };
+
     const { data: pullbacksData, isLoading: pullbacksLoading, refetch: refetchPullbacks } = useQuery({
         queryKey: ['pullbacks'],
         queryFn: fetchPullbacks,
@@ -594,22 +631,58 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
         setNewsSymbol(symbol);
     };
 
-    const renderSignalItem = (item: SymbolSignal, index: number) => (
-        <div key={item.symbol} className="signal-item" onClick={() => onSelectSymbol(item.symbol)}>
-            <div className="signal-rank">{index + 1}</div>
-            <div className="signal-info">
-                <span className="signal-symbol">{item.symbol}</span>
-                <span className={`signal-badge ${item.signal.includes('LONG') ? 'long' : 'short'}`}>
-                    {item.signal === 'STRONG_LONG' || item.signal === 'STRONG_SHORT' ? '🚀' : '📈'} {item.score.toFixed(0)}
-                </span>
-            </div>
-            <div className="signal-stats">
-                <span className={`signal-stat ${item.priceChange >= 0 ? 'pos' : 'neg'}`}>
-                    {item.priceChange > 0 ? '+' : ''}{item.priceChange.toFixed(2)}%
-                </span>
-                <span className="signal-stat">OI {item.oiChange > 0 ? '+' : ''}{item.oiChange.toFixed(1)}%</span>
-            </div>
-            <div className="signal-actions">
+    const handleDownload = async () => {
+        if (!activeTab) return;
+        const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
+        try {
+            const res = await fetch(`http://localhost:3000/market-scanner/export?type=${activeTab}&exchange=${ex}&limit=200`);
+            if (!res.ok) throw new Error('Failed to export');
+            const csv = await res.text();
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            const fileName = `signals-${activeTab}-${ex}-${new Date().toISOString().slice(0,10)}.csv`;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Download failed:', err);
+        }
+    };
+
+    const renderSignalItem = (item: SymbolSignal, index: number) => {
+        const fakeRisk = getFakeSignalRisk(item.symbol);
+        const riskClass =
+            fakeRisk?.riskLevel === 'HIGH'
+                ? 'high'
+                : fakeRisk?.riskLevel === 'MEDIUM'
+                  ? 'medium'
+                  : 'low';
+
+        return (
+            <div key={item.symbol} className="signal-item" onClick={() => onSelectSymbol(item.symbol)}>
+                <div className="signal-rank">{index + 1}</div>
+                <div className="signal-info">
+                    <span className="signal-symbol">{item.symbol}</span>
+                    <span className={`signal-badge ${item.signal.includes('LONG') ? 'long' : 'short'}`}>
+                        {item.signal === 'STRONG_LONG' || item.signal === 'STRONG_SHORT' ? '🚀' : '📈'} {item.score.toFixed(0)}
+                    </span>
+                </div>
+                <div className="signal-stats">
+                    <span className={`signal-stat ${item.priceChange >= 0 ? 'pos' : 'neg'}`}>
+                        {item.priceChange > 0 ? '+' : ''}{item.priceChange.toFixed(2)}%
+                    </span>
+                    <span className="signal-stat">OI {item.oiChange > 0 ? '+' : ''}{item.oiChange.toFixed(1)}%</span>
+                    {fakeRisk && (
+                        <span className={`signal-stat fake-risk ${riskClass}`}>
+                            ⚠️ {fakeRisk.fakeSignalProbability.toFixed(0)}%
+                        </span>
+                    )}
+                </div>
+                <div className="signal-actions">
                 <Button
                     variant="ghost"
                     size="sm"
@@ -636,6 +709,7 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
             </div>
         </div>
     );
+    };
 
     const renderPullbackItem = (item: PullbackSignal, index: number) => (
         <div key={item.symbol} className={`signal-item ${item.maPullback === 'BULLISH_PULLBACK' ? 'pullback-bull' : 'pullback-bear'}`} onClick={() => onSelectSymbol(item.symbol)}>
@@ -739,6 +813,9 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
                 </h2>
                  <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={isLoading}>
                      🔄
+                 </Button>
+                 <Button variant="ghost" size="sm" onClick={handleDownload} disabled={isLoading || !activeTab} title={isRTL ? 'دانلود CSV' : 'Download CSV'}>
+                     📥
                  </Button>
                  <Button
                      variant={useReliableSignals ? 'purple' : 'ghost'}
@@ -853,7 +930,13 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
 
             {activeTab === 'signals' && (
                 <div className="signals-content">
-                    {(signalsLoading || reliableSignalsLoading) && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
+                    <div className="fake-risk-legend">
+                        <span>⚠️ {isRTL ? 'احتمال فیک بودن سیگنال' : 'Fake Signal Probability'}</span>
+                        <span className="fake-risk-low">🟢 {isRTL ? 'کم' : 'Low'} (&lt;35%)</span>
+                        <span className="fake-risk-medium">🟡 {isRTL ? 'متوسط' : 'Medium'} (35-65%)</span>
+                        <span className="fake-risk-high">🔴 {isRTL ? 'زیاد' : 'High'} (&gt;65%)</span>
+                    </div>
+                    {(signalsLoading || reliableSignalsLoading || fakeSignalsLoading) && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
                     {(useReliableSignals ? reliableSignalsData : signalsData) && (
                         <>
                             {(useReliableSignals ? reliableSignalsData : signalsData)!.longs.length > 0 && (

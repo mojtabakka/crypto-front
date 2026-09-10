@@ -324,6 +324,57 @@
     color: var(--accent-red);
 }
 
+.signal-stat.fake-risk {
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: var(--radius-xs);
+    border: 1px solid transparent;
+}
+
+.signal-stat.fake-risk.low {
+    color: var(--accent-green);
+    background: rgba(52, 211, 153, 0.1);
+    border-color: rgba(52, 211, 153, 0.3);
+}
+
+.signal-stat.fake-risk.medium {
+    color: #fbbf24;
+    background: rgba(251, 191, 36, 0.1);
+    border-color: rgba(251, 191, 36, 0.3);
+}
+
+.signal-stat.fake-risk.high {
+    color: var(--accent-red);
+    background: rgba(248, 113, 113, 0.1);
+    border-color: rgba(248, 113, 113, 0.3);
+}
+
+.fake-risk-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.fake-risk-legend .fake-risk-low {
+    color: var(--accent-green);
+}
+
+.fake-risk-legend .fake-risk-medium {
+    color: #fbbf24;
+}
+
+.fake-risk-legend .fake-risk-high {
+    color: var(--accent-red);
+}
+
 
 
 .news-panel-overlay {
