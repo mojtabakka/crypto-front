@@ -399,7 +399,7 @@ export function useScannerData(options: UseScannerDataOptions) {
   const handleDownload = async () => {
     if (!activeTab) return;
     try {
-      const res = await fetch(`http://localhost:3000/market-scanner/export?type=${activeTab}&exchange=${exchange}&limit=200`);
+      const res = await fetch(`http://localhost:3000/market-scanner/export?type=${activeTab}&exchange=${exchange}&limit=30`);
       if (!res.ok) throw new Error('Failed to export');
       const csv = await res.text();
       const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });

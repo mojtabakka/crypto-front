@@ -86,31 +86,31 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
           : scanner.weeklyAboveEma50LongLoading;
       return (
         <AboveEmaTab
-          data={data as unknown as { symbols: LongShortItem[] }}
+          data={data as unknown as { symbols: AboveEmaSignal[] }}
           isLoading={loading}
           isRTL={isRTL}
           scanProgress={scanProgress}
           title={isRTL ? 'بالای EMA50' : 'Above EMA'}
           emptyText={isRTL ? 'ارزی بالای EMA50 یافت نشد' : 'No symbols above EMA50'}
           renderItem={(item, index) => (
-            <div key={(item as SymbolSignal).symbol} className="signal-item pullback-bull" onClick={() => onSelectSymbol((item as SymbolSignal).symbol)}>
+            <div key={item.symbol} className="signal-item pullback-bull" onClick={() => onSelectSymbol(item.symbol)}>
               <div className="signal-rank">{index + 1}</div>
               <div className="signal-info">
-                <span className="signal-symbol">{(item as SymbolSignal).symbol}</span>
+                <span className="signal-symbol">{item.symbol}</span>
                 <span className="signal-badge long">
-                  ↑ {(item as SymbolSignal).priceVsEma50 !== null ? `+${(item as SymbolSignal).priceVsEma50.toFixed(1)}%` : '-'}
+                  ↑ {item.priceVsEma50 !== null ? `+${item.priceVsEma50.toFixed(1)}%` : '-'}
                 </span>
               </div>
               <div className="signal-stats">
-                <span className={`signal-stat ${(item as SymbolSignal).priceChange >= 0 ? 'pos' : 'neg'}`}>
-                  {(item as SymbolSignal).priceChange > 0 ? '+' : ''}{(item as SymbolSignal).priceChange.toFixed(2)}%
+                <span className={`signal-stat ${item.priceChange >= 0 ? 'pos' : 'neg'}`}>
+                  {item.priceChange > 0 ? '+' : ''}{item.priceChange.toFixed(2)}%
                 </span>
               </div>
               <div className="signal-actions">
-                <button type="button" className="btn btn-ghost btn-sm" onClick={(e) => { e.stopPropagation(); handleOpenNews((item as SymbolSignal).symbol); }} title={isRTL ? 'اخبار' : 'News'}>📰</button>
-                <button type="button" className="btn btn-ghost btn-sm" onClick={(e) => { e.stopPropagation(); handleOpenTradingView((item as SymbolSignal).symbol); }} title="TradingView">📉</button>
-                <button type="button" className="btn btn-ghost btn-sm" onClick={(e) => scanner.handleAddToWatchlist(e, (item as SymbolSignal).symbol)}>
-                  {scanner.watchlistSymbols.has((item as SymbolSignal).symbol) ? '⭐' : '☆'}
+                <button type="button" className="btn btn-ghost btn-sm" onClick={(e) => { e.stopPropagation(); handleOpenNews(item.symbol); }} title={isRTL ? 'اخبار' : 'News'}>📰</button>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={(e) => { e.stopPropagation(); handleOpenTradingView(item.symbol); }} title="TradingView">📉</button>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={(e) => scanner.handleAddToWatchlist(e, item.symbol)}>
+                  {scanner.watchlistSymbols.has(item.symbol) ? '⭐' : '☆'}
                 </button>
               </div>
             </div>
