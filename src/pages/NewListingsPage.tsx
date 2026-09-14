@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useI18n } from '../i18n';
 import { Button } from '../components/Button';
+import { ExchangeBadge } from '../components/ExchangeBadge';
 import { Loading } from '../components/Loading';
 import './NewListingsPage.css';
 
@@ -96,6 +97,7 @@ export function NewListingsPage() {
         <h1 className="new-listings-title">
           {isRTL ? '🆕 ارزهای لیست شده' : '🆕 New Listings'}
         </h1>
+        <ExchangeBadge />
         <div className="new-listings-controls">
           <div className="status-filters">
             {['', 'NEW', 'UPCOMING', 'TRADING'].map((status) => (

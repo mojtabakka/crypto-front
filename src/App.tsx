@@ -1,3 +1,5 @@
+import { Toaster, toast } from 'react-hot-toast';
+import { useExchangeBlockNotifier } from './hooks/useExchangeBlockNotifier';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useMarketData } from './hooks/useMarketData';
@@ -16,6 +18,7 @@ import { LogsPage } from './pages/LogsPage';
 import { PumpDetectorPage } from './pages/PumpDetectorPage';
 import { DumpDetectorPage } from './pages/DumpDetectorPage';
 import { PreMoveDetectorPage } from './pages/PreMoveDetectorPage';
+import { SafeSellPage } from './pages/SafeSellPage';
 import { MarketSummary } from './components/MarketSummary';
 import { VolumeChart } from './components/VolumeChart';
 import { OpenInterestChart } from './components/OpenInterestChart';
@@ -41,10 +44,11 @@ import './pages/VolumeProfilePage.css';
 import './pages/NewListingsPage.css';
 import './pages/LogsPage.css';
 import './pages/PumpDetectorPage.css';
+import './pages/SafeSellPage.css';
 import './components/ExchangeDropdown.css';
 import './pages/NewListingsPage.css';
 
-type Page = 'home' | 'detail' | 'signals' | 'watchlist' | 'four-hour-signals' | 'long-short-signals' | 'volume-profile' | 'new-listings' | 'logs' | 'pump-detector' | 'dump-detector' | 'pre-move-detector';
+type Page = 'home' | 'detail' | 'signals' | 'watchlist' | 'four-hour-signals' | 'long-short-signals' | 'volume-profile' | 'new-listings' | 'logs' | 'pump-detector' | 'dump-detector' | 'pre-move-detector' | 'safe-sell';
 type TabId = 'charts' | 'signals' | 'news' | 'events' | 'tradingview-news' | 'important-news' | 'volume-profile';
 
 interface TradingViewNewsItem {
@@ -202,9 +206,10 @@ function App() {
         if (window.location.pathname === '/volume-profile') return 'volume-profile';
     if (window.location.pathname === '/new-listings') return 'new-listings';
     if (window.location.pathname === '/logs') return 'logs';
-    if (window.location.pathname === '/pump-detector') return 'pump-detector';
-    if (window.location.pathname === '/dump-detector') return 'dump-detector';
-    if (window.location.pathname === '/pre-move-detector') return 'pre-move-detector';
+        if (window.location.pathname === '/pump-detector') return 'pump-detector';
+        if (window.location.pathname === '/dump-detector') return 'dump-detector';
+        if (window.location.pathname === '/pre-move-detector') return 'pre-move-detector';
+        if (window.location.pathname === '/safe-sell') return 'safe-sell';
         const params = new URLSearchParams(window.location.search);
         return params.get('symbol') ? 'detail' : 'home';
     };
@@ -242,6 +247,8 @@ function App() {
                 setPage('dump-detector');
             } else if (window.location.pathname === '/pre-move-detector') {
                 setPage('pre-move-detector');
+            } else if (window.location.pathname === '/safe-sell') {
+                setPage('safe-sell');
             } else if (s) {
                 setSymbol(s.toUpperCase());
                 setPage('detail');
@@ -300,6 +307,7 @@ function App() {
     } = useOpenInterest({
         symbol,
         range: '24h',
+        exchange,
     });
 
     const {
@@ -307,6 +315,7 @@ function App() {
     } = useFundingRate({
         symbol,
         range: '24h',
+        exchange,
     });
 
     const {
@@ -384,9 +393,80 @@ function App() {
         setPage('pre-move-detector');
     }, []);
 
+    const handleNavigateToSafeSell = useCallback(() => {
+        window.history.pushState({}, '', '/safe-sell');
+        setPage('safe-sell');
+    }, []);
+
+    const { blockCount } = useExchangeBlockNotifier();
+
+    if (blockCount > 0) {
+        return (
+            <>
+                <Toaster toastOptions={{ style: { zIndex: 10000 } }} />
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    zIndex: 9000,
+                    background: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    pointerEvents: 'all',
+                    cursor: 'not-allowed',
+                }}>
+                    <div style={{
+                        background: '#1e293b',
+                        border: '2px solid #ef4444',
+                        borderRadius: '16px',
+                        padding: '32px 40px',
+                        textAlign: 'center',
+                        maxWidth: '450px',
+                        color: '#e2e8f0',
+                    }}>
+                        <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚫</div>
+                        <h2 style={{ margin: '0 0 12px 0', fontSize: '20px', color: '#fca5a5' }}>
+                            IP Rate Limited / Banned
+                        </h2>
+                        <p style={{ margin: '0 0 8px 0', fontSize: '14px', opacity: 0.8 }}>
+                            All features disabled — circuit breaker active ({blockCount} blocks)
+                        </p>
+                        <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#94a3b8' }}>
+                            Wait for automatic reset or click below to retry
+                        </p>
+                        <button
+                            onClick={async () => {
+                                try {
+                                    await fetch('http://localhost:3000/exchange/circuit-breakers/reset', { method: 'POST' });
+                                    window.location.reload();
+                                } catch {
+                                    toast.error('Failed to reset circuit breaker');
+                                }
+                            }}
+                            style={{
+                                background: '#ef4444',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                padding: '10px 24px',
+                                fontSize: '14px',
+                                cursor: 'pointer',
+                                fontWeight: 600,
+                            }}
+                        >
+                            🔄 Try Reset Circuit Breaker
+                        </button>
+                    </div>
+                </div>
+            </>
+        );
+    }
+
     if (page === 'home') {
         return (
-            <div className="app-container">
+            <>
+                <Toaster />
+                <div className="app-container">
                 <div className="app-header">
                     <div className="header-content">
                         <div>
@@ -398,12 +478,12 @@ function App() {
                             </p>
                         </div>
                         <div className="header-actions">
+                            <LanguageSwitcher />
                             <ExchangeDropdown
                                 selected={exchange}
                                 onChange={setExchange}
                                 isRTL={isRTL}
                             />
-                            <LanguageSwitcher />
                         </div>
                     </div>
                     <FuturesSymbolsButton />
@@ -537,66 +617,132 @@ function App() {
                         >
                             {isRTL ? 'پیش‌بینی حرکت' : 'Pre-Move'}
                         </Button>
+                        <Button
+                            variant="purple"
+                            size="md"
+                            icon={
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M12 2v20M2 12h20"/>
+                                </svg>
+                            }
+                            onClick={handleNavigateToSafeSell}
+                        >
+                            {isRTL ? 'فروش ایمن' : 'Safe Sell'}
+                        </Button>
                     </div>
                 </div>
                 <HomePage onSearch={handleSearch} />
             </div>
+            </>
         );
     }
 
     if (page === 'signals') {
         return (
-            <SignalsPage
-                onSelectSymbol={handleSearch}
-                onBack={handleBackFromPullbacks}
-            />
+            <>
+                <Toaster />
+                <SignalsPage
+                    onSelectSymbol={handleSearch}
+                    onBack={handleBackFromPullbacks}
+                />
+            </>
         );
     }
 
     if (page === 'watchlist') {
         return (
-            <WatchlistPage
-                onSelectSymbol={handleSearch}
-                onBack={handleBackFromWatchlist}
-            />
+            <>
+                <Toaster />
+                <WatchlistPage
+                    onSelectSymbol={handleSearch}
+                    onBack={handleBackFromWatchlist}
+                />
+            </>
         );
     }
 
     if (page === 'four-hour-signals') {
         return (
-            <FourHourSignalsPage
-                onSelectSymbol={handleSearch}
-                onBack={handleBackFromFourHourSignals}
-            />
+            <>
+                <Toaster />
+                <FourHourSignalsPage
+                    onSelectSymbol={handleSearch}
+                    onBack={handleBackFromFourHourSignals}
+                />
+            </>
         );
     }
 
     if (page === 'long-short-signals') {
-        return <LongShortSignalsPage />;
+        return (
+            <>
+                <Toaster />
+                <LongShortSignalsPage />
+            </>
+        );
     }
 
     if (page === 'volume-profile') {
-        return <VolumeProfilePage />;
+        return (
+            <>
+                <Toaster />
+                <VolumeProfilePage />
+            </>
+        );
     }
 
     if (page === 'new-listings') {
-        return <NewListingsPage />;
+        return (
+            <>
+                <Toaster />
+                <NewListingsPage />
+            </>
+        );
     }
 
     if (page === 'logs') {
-        return <LogsPage />;
+        return (
+            <>
+                <Toaster />
+                <LogsPage />
+            </>
+        );
     }
 
     if (page === 'pump-detector') {
-        return <PumpDetectorPage />;
+        return (
+            <>
+                <Toaster />
+                <PumpDetectorPage />
+            </>
+        );
     }
 
     if (page === 'dump-detector') {
-        return <DumpDetectorPage />;
+        return (
+            <>
+                <Toaster />
+                <DumpDetectorPage />
+            </>
+        );
     }
 
     if (page === 'pre-move-detector') {
-        return <PreMoveDetectorPage />;
+        return (
+            <>
+                <Toaster />
+                <PreMoveDetectorPage />
+            </>
+        );
+    }
+
+    if (page === 'safe-sell') {
+        return (
+            <>
+                <Toaster />
+                <SafeSellPage />
+            </>
+        );
     }
 
     const tabs: { id: TabId; label: string; icon: string }[] =
@@ -677,20 +823,26 @@ function App() {
               ];
 
     return (
-        <div className="detail-page">
+        <>
+            <Toaster />
+            <div className="detail-page">
             <div className="detail-header">
-                <Button variant="ghost" size="sm" onClick={handleBack}>
-                    ← {isRTL ? 'بازگشت' : 'Back'}
-                </Button>
-                <h1 className="detail-title">
-                    {symbol}
-                </h1>
-                <ExchangeDropdown
-                    selected={exchange}
-                    onChange={setExchange}
-                    isRTL={isRTL}
-                />
-                <LanguageSwitcher />
+                <div className="detail-header-controls">
+                    <LanguageSwitcher />
+                    <ExchangeDropdown
+                        selected={exchange}
+                        onChange={setExchange}
+                        isRTL={isRTL}
+                    />
+                </div>
+                <div className="detail-header-title">
+                    <Button variant="ghost" size="sm" onClick={handleBack}>
+                        ← {isRTL ? 'بازگشت' : 'Back'}
+                    </Button>
+                    <h1 className="detail-title">
+                        {symbol}
+                    </h1>
+                </div>
             </div>
 
             <div className="tabs-wrapper">
@@ -811,6 +963,7 @@ function App() {
                         <div className="tab-panel">
                             <MarketSignal
                                 symbol={symbol}
+                                exchange={exchange}
                             />
                         </div>
                     )}
@@ -950,6 +1103,7 @@ function App() {
                 </div>
             </div>
         </div>
+        </>
     );
 }
 

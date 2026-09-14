@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useI18n } from '../i18n';
 import { Loading } from '../components/Loading';
+import { ExchangeBadge } from '../components/ExchangeBadge';
 import './VolumeProfilePage.css';
 
 interface VolumeProfileData {
@@ -108,6 +109,7 @@ export function VolumeProfilePage() {
     <div className="volume-profile-page">
       <div className="page-header">
         <h1>{isRTL ? 'والیوم پروفایل' : 'Volume Profile'}</h1>
+        <ExchangeBadge />
         <form onSubmit={handleSymbolSubmit} className="symbol-form">
           <input
             type="text"

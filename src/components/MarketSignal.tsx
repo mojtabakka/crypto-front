@@ -1,5 +1,6 @@
 import { useMarketSignal } from '../hooks/useMarketSignal';
 import { useI18n } from '../i18n';
+import type { ExchangeName } from '../api/market/market';
 import './MarketSignal.css';
 
 function getSignalColor(signal: string): string {
@@ -26,11 +27,12 @@ function getSignalEmoji(signal: string): string {
 
 interface MarketSignalProps {
     symbol: string;
+    exchange: ExchangeName;
 }
 
-export function MarketSignal({ symbol }: MarketSignalProps) {
+export function MarketSignal({ symbol, exchange }: MarketSignalProps) {
     const { t } = useI18n();
-    const { data, isLoading, isError, error } = useMarketSignal({ symbol });
+    const { data, isLoading, isError, error } = useMarketSignal({ symbol, exchange });
 
     if (isLoading) {
         return <div className="signal-container">{t.signal.loading}</div>;

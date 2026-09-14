@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useI18n } from '../i18n';
 import { useExchange } from '../contexts/ExchangeContext';
 import { Loading } from '../components/Loading';
+import { ExchangeBadge } from '../components/ExchangeBadge';
 import './LongShortSignalsPage.css';
 
 interface LongShortSignal {
@@ -19,6 +20,8 @@ interface LongShortSignal {
   priceVsEma50: number | null;
   signal: string | null;
   confidence: number | null;
+  riskLevel: 'NORMAL' | 'HIGH_RISK';
+  fakeSignalProbability: number | null;
   createdAt: string;
 }
 
@@ -34,7 +37,7 @@ export function LongShortSignalsPage() {
   const { isRTL } = useI18n();
   const { exchange } = useExchange();
 
-  const { data, isLoading, isError, refetch } = useQuery<LongShortSignalsResponse>({
+  const { data, isLoading, isError, error, refetch } = useQuery<LongShortSignalsResponse>({
     queryKey: ['long-short-signals', exchange],
     queryFn: async () => {
       const res = await fetch(`http://localhost:3000/long-short-signals?exchange=${exchange}`);
@@ -45,6 +48,8 @@ export function LongShortSignalsPage() {
         if (scanRes.ok) {
           return scanRes.json();
         }
+        const scanErr = await scanRes.json().catch(() => ({}));
+        throw new Error(scanErr.message || `Scan failed with status ${scanRes.status}`);
       }
       return data;
     },
@@ -59,10 +64,17 @@ export function LongShortSignalsPage() {
 
   if (isLoading) return <Loading isRTL={isRTL} />;
   if (isError) {
+    const errorMsg = error instanceof Error ? error.message : 'خطا در بارگذاری سیگنال‌ها';
     return (
       <div className="long-short-signals-page">
+        <div className="page-header">
+          <h1>{isRTL ? 'سیگنال‌های لانگ و شورت' : 'Long & Short Signals'}</h1>
+          <ExchangeBadge />
+        </div>
         <div className="error-state">
-          <p>{isRTL ? 'خطا در بارگذاری سیگنال‌ها' : 'Error loading signals'}</p>
+          <p style={{ color: '#ef4444', fontWeight: 600, marginBottom: '12px' }}>
+            {errorMsg}
+          </p>
           <button onClick={() => refetch()} className="retry-btn">
             {isRTL ? 'تلاش مجدد' : 'Retry'}
           </button>
@@ -84,11 +96,24 @@ export function LongShortSignalsPage() {
     return `${prefix}${Number(value).toFixed(decimals)}%`;
   };
 
+  const renderRiskBadge = (signal: LongShortSignal) => {
+    if (signal.riskLevel !== 'HIGH_RISK') return null;
+    return (
+      <span className="risk-badge">
+        {isRTL ? 'پرخطر' : 'High Risk'}
+        {signal.fakeSignalProbability != null
+          ? ` ${Number(signal.fakeSignalProbability).toFixed(0)}%`
+          : ''}
+      </span>
+    );
+  };
+
   return (
     <div className="long-short-signals-page">
       <div className="page-header">
         <h1>{isRTL ? 'سیگنال‌های لانگ و شورت' : 'Long & Short Signals'}</h1>
         <div className="header-info">
+          <ExchangeBadge />
           {data?.lastUpdate && (
             <span className="last-update">
               {isRTL ? 'آخرین بروزرسانی:' : 'Last update:'}{' '}
@@ -124,7 +149,10 @@ export function LongShortSignalsPage() {
                 <tbody>
                   {data.longs.map((signal) => (
                     <tr key={signal.id} className="signal-row long-row">
-                      <td className="symbol-cell">{signal.symbol}</td>
+                      <td className="symbol-cell">
+                        <span className="symbol-name">{signal.symbol}</span>
+                        {renderRiskBadge(signal)}
+                      </td>
                       <td className="score-cell">{Number(signal.score).toFixed(0)}</td>
                       <td>{formatPrice(signal.currentPrice)}</td>
                       <td className={signal.priceChange && signal.priceChange >= 0 ? 'pos' : 'neg'}>
@@ -174,7 +202,10 @@ export function LongShortSignalsPage() {
                 <tbody>
                   {data.shorts.map((signal) => (
                     <tr key={signal.id} className="signal-row short-row">
-                      <td className="symbol-cell">{signal.symbol}</td>
+                      <td className="symbol-cell">
+                        <span className="symbol-name">{signal.symbol}</span>
+                        {renderRiskBadge(signal)}
+                      </td>
                       <td className="score-cell">{Number(signal.score).toFixed(0)}</td>
                       <td>{formatPrice(signal.currentPrice)}</td>
                       <td className={signal.priceChange && signal.priceChange >= 0 ? 'pos' : 'neg'}>

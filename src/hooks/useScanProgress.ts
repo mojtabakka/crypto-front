@@ -41,5 +41,5 @@ export function useScanProgress() {
     setProgress(null);
   }, []);
 
-  return { progress, isConnected, resetProgress, socket: socketRef.current };
+  return { progress, isConnected, resetProgress };
 }

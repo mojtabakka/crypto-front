@@ -13,6 +13,10 @@
   gap: 16px;
 }
 
+.new-listings-header .exchange-badge {
+  flex-shrink: 0;
+}
+
 .new-listings-title {
   font-size: 24px;
   font-weight: 700;

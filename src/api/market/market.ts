@@ -1,16 +1,26 @@
-export type ExchangeName =
-    | 'BINANCE'
-    | 'OKX'
-    | 'BYBIT'
-    | 'MEXC'
-    | 'KUCOIN'
-    | 'BINGX'
-    | 'CRYPTOCOM';
+export const EXCHANGE_NAMES = [
+    'BINANCE',
+    'OKX',
+    'BYBIT',
+    'MEXC',
+    'KUCOIN',
+    'BINGX',
+    'CRYPTOCOM',
+    'TOOBIT',
+    'LBANK',
+    'ORBIT',
+] as const;
+
+export type ExchangeName = typeof EXCHANGE_NAMES[number];
+
+export function isExchangeName(value: string | null): value is ExchangeName {
+    return value !== null && EXCHANGE_NAMES.includes(value as ExchangeName);
+}
 
 export function getCurrentExchange(): ExchangeName {
     if (typeof window === 'undefined') return 'BINANCE';
-    const saved = localStorage.getItem('selected_exchange') as ExchangeName;
-    return saved ?? 'BINANCE';
+    const saved = localStorage.getItem('selected_exchange');
+    return isExchangeName(saved) ? saved : 'BINANCE';
 }
 
 export interface MarketCandle {
@@ -88,13 +98,15 @@ export async function getMarketData({
 export async function getOpenInterest({
     symbol,
     range,
+    exchange,
 }: {
     symbol: string;
     range: string;
+    exchange?: ExchangeName;
 }): Promise<OpenInterestData[]> {
-    const exchange = getCurrentExchange();
+    const selectedExchange = exchange ?? getCurrentExchange();
     const response = await fetch(
-        `http://localhost:3000/market/${symbol}/open-interest?range=${range}&exchange=${exchange}`,
+        `http://localhost:3000/market/${symbol}/open-interest?range=${range}&exchange=${selectedExchange}`,
     );
 
     if (!response.ok) {
@@ -107,13 +119,15 @@ export async function getOpenInterest({
 export async function getFundingRate({
     symbol,
     range,
+    exchange,
 }: {
     symbol: string;
     range: string;
+    exchange?: ExchangeName;
 }): Promise<FundingRateData[]> {
-    const exchange = getCurrentExchange();
+    const selectedExchange = exchange ?? getCurrentExchange();
     const response = await fetch(
-        `http://localhost:3000/market/${symbol}/funding-rate?range=${range}&exchange=${exchange}`,
+        `http://localhost:3000/market/${symbol}/funding-rate?range=${range}&exchange=${selectedExchange}`,
     );
 
     if (!response.ok) {
@@ -125,12 +139,14 @@ export async function getFundingRate({
 
 export async function getMarketSignal({
     symbol,
+    exchange,
 }: {
     symbol: string;
+    exchange?: ExchangeName;
 }): Promise<MarketSignal> {
-    const exchange = getCurrentExchange();
+    const selectedExchange = exchange ?? getCurrentExchange();
     const response = await fetch(
-        `http://localhost:3000/market-signal?symbol=${symbol}&exchange=${exchange}`,
+        `http://localhost:3000/market-signal?symbol=${symbol}&exchange=${selectedExchange}`,
     );
 
     if (!response.ok) {
@@ -249,9 +265,10 @@ export interface FuturesSymbolsResponse {
     fetchedAt: string;
 }
 
-export async function fetchFuturesSymbols(): Promise<FuturesSymbolsResponse> {
+export async function fetchFuturesSymbols(exchange?: ExchangeName): Promise<FuturesSymbolsResponse> {
+    const selectedExchange = exchange ?? getCurrentExchange();
     const response = await fetch(
-        `http://localhost:3000/futures-symbols/fetch`,
+        `http://localhost:3000/futures-symbols/fetch?exchange=${selectedExchange}`,
         { method: 'POST' },
     );
 
@@ -262,9 +279,10 @@ export async function fetchFuturesSymbols(): Promise<FuturesSymbolsResponse> {
     return response.json();
 }
 
-export async function getStoredFuturesSymbols(): Promise<FuturesSymbolsResponse | { message: string }> {
+export async function getStoredFuturesSymbols(exchange?: ExchangeName): Promise<FuturesSymbolsResponse | { message: string }> {
+    const selectedExchange = exchange ?? getCurrentExchange();
     const response = await fetch(
-        `http://localhost:3000/futures-symbols`,
+        `http://localhost:3000/futures-symbols?exchange=${selectedExchange}`,
     );
 
     if (!response.ok) {

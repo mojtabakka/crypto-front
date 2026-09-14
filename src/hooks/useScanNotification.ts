@@ -78,6 +78,4 @@ export function useScanNotification() {
       socket.disconnect();
     };
   }, [playSound, showNotification]);
-
-  return { socket: socketRef.current };
 }

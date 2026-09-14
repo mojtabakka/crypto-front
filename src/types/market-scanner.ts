@@ -1,0 +1,83 @@
+export type ScannerTab =
+  | 'signals'
+  | 'pullbacks'
+  | 'reapproach'
+  | 'weekly-pullbacks'
+  | 'weekly-reapproach'
+  | 'weekly-above-ema50'
+  | 'daily-above-ema50-long'
+  | 'weekly-above-ema50-long'
+  | '4h-pullbacks'
+  | '4h-reapproach'
+  | 'monthly-pullbacks'
+  | 'monthly-reapproach'
+  | 'ema21-daily-pullback'
+  | 'ema21-daily-reapproach'
+  | 'ema21-4h-pullback'
+  | 'ema21-4h-reapproach'
+  | 'ema21-weekly-pullback'
+  | 'ema21-weekly-reapproach';
+
+export interface SymbolSignal {
+  symbol: string;
+  score: number;
+  signal: string;
+  confidence: number;
+  priceChange: number;
+  oiChange: number;
+  fundingRate: number;
+  sma50: number | null;
+  priceVsSma50: number | null;
+  maSignal: 'ABOVE' | 'BELOW' | 'NEUTRAL';
+}
+
+export interface PullbackSignal {
+  symbol: string;
+  score: number;
+  signal: string;
+  priceChange: number;
+  oiChange: number;
+  maPullback: 'BULLISH_PULLBACK' | 'BEARISH_PULLBACK';
+  maPullbackTouches: number;
+  priceVsEma50: number | null;
+  currentPrice: number;
+  ema50: number | null;
+}
+
+export interface ReapproachSignal {
+  symbol: string;
+  score: number;
+  signal: string;
+  priceChange: number;
+  oiChange: number;
+  maReapproach: 'BULLISH_REAPPROACH' | 'BEARISH_REAPPROACH';
+  breakoutDay: number | null;
+  currentDistance: number | null;
+  priceVsEma50: number | null;
+  currentPrice: number;
+  ema50: number | null;
+}
+
+export interface FakeSignalRisk {
+  symbol: string;
+  fakeSignalProbability: number;
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+  rsi: number | null;
+  priceVsEma50: number | null;
+  volumeRatio: number | null;
+  momentum: number | null;
+  direction: 'LONG' | 'SHORT';
+}
+
+export interface FakeSignalScanResult {
+  risks: FakeSignalRisk[];
+  scanned: number;
+  duration: number;
+  timestamp: string;
+}
+
+export interface AboveEmaSignal {
+  symbol: string;
+  priceVsEma50: number | null;
+  priceChange: number;
+}

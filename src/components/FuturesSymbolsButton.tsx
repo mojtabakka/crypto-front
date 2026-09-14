@@ -1,10 +1,12 @@
 import { useFetchFuturesSymbols } from '../hooks/useFuturesSymbols';
+import { useExchange } from '../contexts/ExchangeContext';
 import { useI18n } from '../i18n';
 import { Button } from './Button';
 
 export function FuturesSymbolsButton() {
     const { isRTL } = useI18n();
-    const { mutate, isPending, isSuccess, data } = useFetchFuturesSymbols();
+    const { exchange } = useExchange();
+    const { mutate, isPending, isSuccess, data } = useFetchFuturesSymbols(exchange);
 
     return (
         <div className="futures-symbols-widget">

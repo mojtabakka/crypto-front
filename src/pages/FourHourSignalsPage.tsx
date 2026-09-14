@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useI18n } from '../i18n';
 import { Loading } from '../components/Loading';
+import { ExchangeBadge } from '../components/ExchangeBadge';
 import './FourHourSignalsPage.css';
 
 interface FourHourSignal {
@@ -78,6 +79,7 @@ export function FourHourSignalsPage({
           </svg>
           {isRTL ? 'سیگنال‌های ۴ ساعته' : '4-Hour Signals'}
         </h2>
+        <ExchangeBadge />
         <button
           onClick={() => refetch()}
           className="refresh-btn"

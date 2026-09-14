@@ -19,6 +19,80 @@
   gap: 16px;
 }
 
+.header-actions,
+.detail-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  direction: ltr;
+}
+
+[dir="ltr"] .header-actions {
+  flex-direction: row-reverse;
+}
+
+.header-control {
+  height: 36px;
+  min-height: 36px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.header-control:hover {
+  border-color: rgba(96, 165, 250, 0.35);
+  background: rgba(30, 41, 59, 0.7);
+}
+
+.header-control:focus-within {
+  border-color: rgba(96, 165, 250, 0.55);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.12);
+}
+
+.header-control.exchange-badge {
+  gap: 7px;
+  padding: 0 10px;
+}
+
+.header-control.exchange-dropdown {
+  padding: 0;
+}
+
+.header-control.exchange-dropdown .exchange-dropdown-trigger {
+  height: 36px;
+  min-height: 36px;
+  padding: 0 12px;
+  min-width: 140px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
+.header-control.exchange-dropdown .exchange-dropdown-trigger:hover,
+.header-control.exchange-dropdown .exchange-dropdown-trigger:focus {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.header-control.language-switcher {
+  padding: 0 12px;
+}
+
+.header-control.language-switcher .btn-text {
+  color: var(--text-primary) !important;
+}
+
 .app-title {
   margin: 0 0 12px 0;
   font-size: 32px;
@@ -496,10 +570,27 @@
 .detail-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 16px;
+  direction: ltr;
   margin-bottom: 32px;
   padding-bottom: 24px;
   border-bottom: 1px solid var(--border-subtle);
+}
+
+.detail-header-controls {
+  flex-shrink: 0;
+}
+
+.detail-header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+[dir="rtl"] .detail-header-title {
+  direction: rtl;
 }
 
 .back-btn {

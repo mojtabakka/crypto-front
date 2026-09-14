@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useI18n } from '../i18n';
 import { Button } from '../components/Button';
+import { ExchangeBadge } from '../components/ExchangeBadge';
 import { Loading } from '../components/Loading';
 import './LogsPage.css';
 
@@ -52,6 +53,7 @@ export function LogsPage() {
         <h1 className="logs-title">
           {isRTL ? '📋 لاگ‌های سیستم' : '📋 System Logs'}
         </h1>
+        <ExchangeBadge />
         <Button variant="purple" size="sm" onClick={() => refetch()}>
           {isRTL ? '🔄 بروزرسانی' : '🔄 Refresh'}
         </Button>

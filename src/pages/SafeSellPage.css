@@ -1,0 +1,411 @@
+.safe-sell-page {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.safe-sell-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.safe-sell-header h1 {
+  margin: 0;
+  font-size: 24px;
+  color: #f1f5f9;
+}
+
+.safe-sell-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.symbol-search {
+  position: relative;
+}
+
+.safe-sell-input {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: #e2e8f0;
+  font-size: 14px;
+  outline: none;
+  width: 220px;
+}
+
+.safe-sell-input:focus {
+  border-color: #6366f1;
+}
+
+.symbol-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin: 4px 0 0;
+  padding: 4px;
+  list-style: none;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.symbol-dropdown-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #e2e8f0;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+  text-align: start;
+}
+
+.symbol-dropdown-item:hover {
+  background: #334155;
+  color: #6366f1;
+}
+
+.symbol-dropdown-item.active {
+  background: #4c1d95;
+  color: #f1f5f9;
+}
+
+.safe-sell-summary {
+  margin-bottom: 24px;
+}
+
+.summary-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.summary-card h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: #e2e8f0;
+}
+
+.trend-indicator {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.trend-label {
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+.trend-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.trend-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.trend-label-text {
+  width: 80px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.trend-fill {
+  height: 16px;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.long-bar .trend-fill {
+  background: #22c55e;
+}
+
+.short-bar .trend-fill {
+  background: #ef4444;
+}
+
+.safe-sell-live {
+  margin-bottom: 24px;
+}
+
+.safe-sell-live h2 {
+  margin: 0 0 16px 0;
+  font-size: 20px;
+  color: #f1f5f9;
+}
+
+.live-events {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.live-event-card {
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #334155;
+  border-left: 4px solid #6b7280;
+  transition: all 0.2s;
+}
+
+.live-event-card:hover {
+  border-color: #475569;
+}
+
+.live-event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.live-symbol {
+  font-size: 16px;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.live-direction {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.live-severity {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.live-score {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f59e0b;
+  margin-bottom: 8px;
+}
+
+.live-changes {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: #cbd5e1;
+  margin-bottom: 8px;
+}
+
+.live-reasons {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #334155;
+}
+
+.live-reason {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.live-time {
+  font-size: 11px;
+  color: #64748b;
+  text-align: right;
+}
+
+.safe-sell-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.safe-sell-grid h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #f1f5f9;
+}
+
+.safe-sell-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+}
+
+.safe-sell-card {
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #334155;
+  border-left: 4px solid #6b7280;
+  transition: all 0.2s;
+}
+
+.safe-sell-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  border-color: #475569;
+}
+
+.safe-sell-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.safe-sell-symbol {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.safe-sell-direction {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.safe-sell-severity {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.safe-sell-score-bar {
+  position: relative;
+  width: 100%;
+  height: 24px;
+  background: #0f172a;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.safe-sell-score-fill {
+  height: 100%;
+  transition: width 0.5s ease;
+  border-radius: 6px;
+}
+
+.safe-sell-score-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 11px;
+  font-weight: 700;
+  color: #f1f5f9;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.safe-sell-price {
+  font-size: 20px;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin-bottom: 12px;
+}
+
+.safe-sell-changes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #cbd5e1;
+}
+
+.safe-sell-changes strong {
+  margin-left: 4px;
+}
+
+.safe-sell-liquidation {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.safe-sell-liquidation div.liquidation-active {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.safe-sell-funding {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 12px;
+}
+
+.safe-sell-reasons {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #334155;
+}
+
+.safe-sell-reason {
+  font-size: 12px;
+  color: #cbd5e1;
+  padding: 2px 0;
+}
+
+.safe-sell-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+  border-top: 1px solid #334155;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.safe-sell-exchange {
+  font-weight: 600;
+  color: #a78bfa;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #94a3b8;
+  background: #1e293b;
+  border-radius: 12px;
+  border: 1px solid #334155;
+}
+
+.empty-sub {
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 13px;
+}

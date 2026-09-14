@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useI18n } from '../i18n';
 import { Button } from '../components/Button';
+import { ExchangeBadge } from '../components/ExchangeBadge';
 import { Loading } from '../components/Loading';
 import { useExchange } from '../contexts/ExchangeContext';
 import './PumpDetectorPage.css';
@@ -100,6 +101,7 @@ export function DumpDetectorPage() {
         <h1 className="pump-title">
           {isRTL ? '🔻 ردیاب دامپ' : '🔻 Dump Detector'}
         </h1>
+        <ExchangeBadge />
         <Button
           variant="purple"
           size="md"

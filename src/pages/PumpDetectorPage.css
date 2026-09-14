@@ -13,6 +13,10 @@
   gap: 12px;
 }
 
+.pump-header .exchange-badge {
+  flex-shrink: 0;
+}
+
 .pump-title {
   font-size: 26px;
   font-weight: 700;

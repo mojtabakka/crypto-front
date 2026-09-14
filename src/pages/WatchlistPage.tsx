@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useI18n } from '../i18n';
 import { Loading } from '../components/Loading';
 import { Button } from '../components/Button';
+import { ExchangeBadge } from '../components/ExchangeBadge';
 import './WatchlistPage.css';
 
 interface WatchlistItem {
@@ -56,7 +57,7 @@ export function WatchlistPage({ onSelectSymbol, onBack }: WatchlistPageProps) {
                     ← {isRTL ? 'بازگشت' : 'Back'}
                 </Button>
                 <h2>⭐ {isRTL ? 'واچ لیست' : 'Watchlist'}</h2>
-                <div></div>
+                <ExchangeBadge />
             </div>
 
             {isLoading && <Loading isRTL={isRTL} compact />}

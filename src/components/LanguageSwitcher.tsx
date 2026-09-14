@@ -8,6 +8,7 @@ export function LanguageSwitcher() {
 
   return (
     <Button
+      className="header-control language-switcher"
       variant="ghost"
       size="sm"
       onClick={toggleLocale}

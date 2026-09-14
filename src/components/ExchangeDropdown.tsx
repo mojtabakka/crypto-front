@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import type { ExchangeName } from '../api/market/market';
+import { ExchangeLogo } from './ExchangeLogo';
 import './ExchangeDropdown.css';
 
 interface ExchangeDropdownProps {
@@ -8,14 +9,17 @@ interface ExchangeDropdownProps {
   isRTL?: boolean;
 }
 
-const EXCHANGES: { value: ExchangeName; label: string; color: string }[] = [
-  { value: 'BINANCE', label: 'Binance', color: '#f0b90b' },
-  { value: 'OKX', label: 'OKX', color: '#000000' },
-  { value: 'BYBIT', label: 'Bybit', color: '#f7a600' },
-  { value: 'MEXC', label: 'MEXC', color: '#00b897' },
-  { value: 'KUCOIN', label: 'KuCoin', color: '#24ae8f' },
-  { value: 'BINGX', label: 'BingX', color: '#2354e6' },
-  { value: 'CRYPTOCOM', label: 'Crypto.com', color: '#103f68' },
+const EXCHANGES: { value: ExchangeName; label: string }[] = [
+  { value: 'BINANCE', label: 'Binance' },
+  { value: 'OKX', label: 'OKX' },
+  { value: 'BYBIT', label: 'Bybit' },
+  { value: 'MEXC', label: 'MEXC' },
+  { value: 'KUCOIN', label: 'KuCoin' },
+  { value: 'BINGX', label: 'BingX' },
+  { value: 'CRYPTOCOM', label: 'Crypto.com' },
+  { value: 'TOOBIT', label: 'Toobit' },
+  { value: 'LBANK', label: 'LBank' },
+  { value: 'ORBIT', label: 'Orbit' },
 ];
 
 export function ExchangeDropdown({ selected, onChange }: ExchangeDropdownProps) {
@@ -35,13 +39,13 @@ export function ExchangeDropdown({ selected, onChange }: ExchangeDropdownProps) 
   }, []);
 
   return (
-    <div className="exchange-dropdown" ref={dropdownRef}>
+    <div className="exchange-dropdown header-control" ref={dropdownRef}>
       <button
         className="exchange-dropdown-trigger"
         onClick={() => setOpen(!open)}
         type="button"
       >
-        <span className="exchange-dropdown-dot" style={{ background: current.color }} />
+        <ExchangeLogo exchange={current.value} size={20} />
         <span className="exchange-dropdown-label">{current.label}</span>
         <svg
           width="12"
@@ -68,7 +72,7 @@ export function ExchangeDropdown({ selected, onChange }: ExchangeDropdownProps) 
               }}
               type="button"
             >
-              <span className="exchange-dropdown-dot" style={{ background: ex.color }} />
+              <ExchangeLogo exchange={ex.value} size={20} />
               <span>{ex.label}</span>
               {selected === ex.value && (
                 <svg

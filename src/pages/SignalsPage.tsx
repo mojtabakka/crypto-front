@@ -1,1492 +1,193 @@
-import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useCallback } from 'react';
+import { useExchange } from '../contexts/ExchangeContext';
 import { useI18n } from '../i18n';
-import { Loading } from '../components/Loading';
-import { Button } from '../components/Button';
 import { useScanProgress } from '../hooks/useScanProgress';
+import { useScannerData } from '../hooks/useScannerData';
+import type { AboveEmaSignal, ScannerTab, SymbolSignal } from '../types/market-scanner';
+import { AboveEmaTab } from '../components/AboveEmaTab';
+import { NewsPanel } from '../components/NewsPanel';
+import { SignalsHeader } from '../components/SignalsHeader';
+import { SignalsTab } from '../components/SignalsTab';
+import { SignalsTabs } from '../components/SignalsTabs';
+import { SignalItem } from '../components/SignalItem';
+import { LongShortTab } from '../components/LongShortTab';
 import './SignalsPage.css';
 
-interface SymbolSignal {
-    symbol: string;
-    score: number;
-    signal: string;
-    confidence: number;
-    priceChange: number;
-    oiChange: number;
-    fundingRate: number;
-    sma50: number | null;
-    priceVsSma50: number | null;
-    maSignal: 'ABOVE' | 'BELOW' | 'NEUTRAL';
-}
-
-interface PullbackSignal {
-    symbol: string;
-    score: number;
-    signal: string;
-    priceChange: number;
-    oiChange: number;
-    maPullback: 'BULLISH_PULLBACK' | 'BEARISH_PULLBACK';
-    maPullbackTouches: number;
-    priceVsEma50: number | null;
-    currentPrice: number;
-    ema50: number | null;
-}
-
-interface ReapproachSignal {
-    symbol: string;
-    score: number;
-    signal: string;
-    priceChange: number;
-    oiChange: number;
-    maReapproach: 'BULLISH_REAPPROACH' | 'BEARISH_REAPPROACH';
-    breakoutDay: number | null;
-    currentDistance: number | null;
-    priceVsEma50: number | null;
-    currentPrice: number;
-    ema50: number | null;
-}
-
-interface FakeSignalRisk {
-    symbol: string;
-    fakeSignalProbability: number;
-    riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
-    rsi: number | null;
-    priceVsEma50: number | null;
-    volumeRatio: number | null;
-    momentum: number | null;
-    direction: 'LONG' | 'SHORT';
-}
-
-interface FakeSignalScanResult {
-    risks: FakeSignalRisk[];
-    scanned: number;
-    duration: number;
-    timestamp: string;
-}
-
-async function fetchLongs(): Promise<{ longs: SymbolSignal[]; shorts: SymbolSignal[] }> {
-    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
-    const response = await fetch(`http://localhost:3000/market-scanner?limit=30&exchange=${ex}`);
-    if (!response.ok) throw new Error('Failed to fetch');
-    return response.json();
-}
-
-async function fetchReliableLongs(): Promise<{ longs: SymbolSignal[]; shorts: SymbolSignal[] }> {
-    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
-    const response = await fetch(`http://localhost:3000/market-scanner/reliable?limit=30&exchange=${ex}`);
-    if (!response.ok) throw new Error('Failed to fetch reliable signals');
-    return response.json();
-}
-
-async function fetchFakeSignals(): Promise<FakeSignalScanResult> {
-    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
-    const response = await fetch(`http://localhost:3000/market-scanner/fake-signals?limit=50&exchange=${ex}`);
-    if (!response.ok) throw new Error('Failed to fetch fake signals');
-    return response.json();
-}
-
-async function fetchPullbacks(): Promise<{ longs: PullbackSignal[]; shorts: PullbackSignal[] }> {
-    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
-    const response = await fetch(`http://localhost:3000/market-scanner/pullbacks?limit=30&exchange=${ex}`);
-    if (!response.ok) throw new Error('Failed to fetch pullbacks');
-    return response.json();
-}
-
-async function fetchReapproach(): Promise<{ longs: ReapproachSignal[]; shorts: ReapproachSignal[] }> {
-    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
-    const response = await fetch(`http://localhost:3000/market-scanner/reapproach?limit=30&exchange=${ex}`);
-    if (!response.ok) throw new Error('Failed to fetch reapproach');
-    return response.json();
-}
-
-async function fetchWeeklyPullbacks(): Promise<{ longs: PullbackSignal[]; shorts: PullbackSignal[] }> {
-    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
-    const response = await fetch(`http://localhost:3000/market-scanner/weekly-pullbacks?limit=30&exchange=${ex}`);
-    if (!response.ok) throw new Error('Failed to fetch weekly pullbacks');
-    return response.json();
-}
-
-async function fetchWeeklyReapproach(): Promise<{ longs: ReapproachSignal[]; shorts: ReapproachSignal[] }> {
-    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
-    const response = await fetch(`http://localhost:3000/market-scanner/weekly-reapproach?limit=30&exchange=${ex}`);
-    if (!response.ok) throw new Error('Failed to fetch weekly reapproach');
-    return response.json();
-}
-
-async function fetchWeeklyAboveEma50(): Promise<{ symbols: Array<{ symbol: string; priceVsEma50: number | null; currentPrice: number; ema50: number | null }> }> {
-    const response = await fetch('http://localhost:3000/market-scanner/weekly-above-ema50?limit=30');
-    if (!response.ok) throw new Error('Failed to fetch weekly above EMA50');
-    return response.json();
-}
-
-async function fetchDailyAboveEma50Long(): Promise<{
-    symbols: Array<{
-        symbol: string;
-        priceVsEma50: number | null;
-        currentPrice: number;
-        ema50: number | null;
-        score: number;
-        signal: string;
-        confidence: number;
-        priceChange: number;
-        oiChange: number;
-        fundingRate: number;
-    }>;
-}> {
-    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
-    const response = await fetch(`http://localhost:3000/market-scanner/daily-above-ema50-long?limit=20&exchange=${ex}`);
-    if (!response.ok) throw new Error('Failed to fetch daily above EMA50 with long conditions');
-    return response.json();
-}
-
-async function fetchWeeklyAboveEma50Long(): Promise<{
-    symbols: Array<{
-        symbol: string;
-        priceVsEma50: number | null;
-        currentPrice: number;
-        ema50: number | null;
-        score: number;
-        signal: string;
-        confidence: number;
-        priceChange: number;
-        oiChange: number;
-        fundingRate: number;
-    }>;
-}> {
-    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
-    const response = await fetch(`http://localhost:3000/market-scanner/weekly-above-ema50-long?limit=20&exchange=${ex}`);
-    if (!response.ok) throw new Error('Failed to fetch weekly above EMA50 with long conditions');
-    return response.json();
-}
-
-async function fetch4hPullbacks(): Promise<{
-    longs: PullbackSignal[];
-    shorts: PullbackSignal[];
-    all: PullbackSignal[];
-}> {
-    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
-    const response = await fetch(`http://localhost:3000/market-scanner/4h-pullbacks?limit=20&exchange=${ex}`);
-    if (!response.ok) throw new Error('Failed to fetch 4h pullbacks');
-    return response.json();
-}
-
-async function fetchMonthlyPullbacks(): Promise<{
-    longs: PullbackSignal[];
-    shorts: PullbackSignal[];
-    all: PullbackSignal[];
-}> {
-    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
-    const response = await fetch(`http://localhost:3000/market-scanner/monthly-pullbacks?limit=20&exchange=${ex}`);
-    if (!response.ok) throw new Error('Failed to fetch monthly pullbacks');
-    return response.json();
-}
-
-async function fetch4hReapproach(): Promise<{
-    longs: ReapproachSignal[];
-    shorts: ReapproachSignal[];
-    all: ReapproachSignal[];
-}> {
-    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
-    const response = await fetch(`http://localhost:3000/market-scanner/4h-reapproach?limit=20&exchange=${ex}`);
-    if (!response.ok) throw new Error('Failed to fetch 4h reapproach');
-    return response.json();
-}
-
-async function fetchMonthlyReapproach(): Promise<{
-    longs: ReapproachSignal[];
-    shorts: ReapproachSignal[];
-    all: ReapproachSignal[];
-}> {
-    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
-    const response = await fetch(`http://localhost:3000/market-scanner/monthly-reapproach?limit=20&exchange=${ex}`);
-    if (!response.ok) throw new Error('Failed to fetch monthly reapproach');
-    return response.json();
-}
-
-async function fetchEma21Pullbacks(interval: '1d' | '4h' | '1w'): Promise<{
-    longs: PullbackSignal[];
-    shorts: PullbackSignal[];
-    all: PullbackSignal[];
-}> {
-    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
-    const response = await fetch(`http://localhost:3000/market-scanner/pullbacks-ema21?limit=30&exchange=${ex}&interval=${interval}`);
-    if (!response.ok) throw new Error(`Failed to fetch EMA21 ${interval} pullbacks`);
-    return response.json();
-}
-
-async function fetchEma21Reapproach(interval: '1d' | '4h' | '1w'): Promise<{
-    longs: ReapproachSignal[];
-    shorts: ReapproachSignal[];
-    all: ReapproachSignal[];
-}> {
-    const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
-    const response = await fetch(`http://localhost:3000/market-scanner/reapproach-ema21?limit=30&exchange=${ex}&interval=${interval}`);
-    if (!response.ok) throw new Error(`Failed to fetch EMA21 ${interval} reapproach`);
-    return response.json();
-}
-
-async function addToWatchlist(symbol: string): Promise<void> {
-    const response = await fetch('http://localhost:3000/watchlist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ symbol }),
-    });
-    if (!response.ok) throw new Error('Failed to add to watchlist');
-}
-
-interface TradingViewNewsItem {
-    id: string;
-    title: string;
-    description: string;
-    source: string;
-    url: string;
-    publishedOn: number;
-    tags: string;
-    imageUrl: string;
-}
-
-interface NewsPanelProps {
-    symbol: string;
-    isRTL: boolean;
-    progress?: number;
-    total?: number;
-    onClose: () => void;
-}
-
-function NewsPanel({ symbol, isRTL, onClose }: NewsPanelProps) {
-    const { data: newsData, isLoading } = useQuery({
-        queryKey: ['tradingview-news', symbol, isRTL ? 'fa' : 'en'],
-        queryFn: async () => {
-            const lang = isRTL ? 'fa' : 'en';
-            const res = await fetch(`http://localhost:3000/news/tradingview?symbol=${symbol}&limit=10&lang=${lang}`);
-            if (!res.ok) throw new Error('Failed to fetch news');
-            return res.json();
-        },
-        staleTime: 120000,
-    });
-
-    return (
-        <div className="news-panel-overlay" onClick={onClose}>
-            <div className="news-panel" onClick={(e) => e.stopPropagation()}>
-                <div className="news-panel-header">
-                    <h3>📰 {isRTL ? 'اخبار' : 'News'} {symbol}</h3>
-                    <Button variant="ghost" size="sm" onClick={onClose}>
-                        ✕
-                    </Button>
-                </div>
-                <div className="news-panel-content">
-                    {isLoading && <Loading isRTL={isRTL} compact />}
-                    {newsData?.data?.length > 0 && (
-                        <div className="news-list">
-                            {newsData.data.map((item: TradingViewNewsItem) => (
-                                <a
-                                    key={item.id}
-                                    href={item.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="news-item"
-                                >
-                                    <div className="news-item-content">
-                                        <h4 className="news-item-title">{item.title}</h4>
-                                        {item.description && (
-                                            <p className="news-item-desc">{item.description}</p>
-                                        )}
-                                        <div className="news-item-meta">
-                                            <span className="news-item-source">{item.source}</span>
-                                            <span className="news-item-date">
-                                                {new Date(item.publishedOn).toLocaleDateString()}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </a>
-                            ))}
-                        </div>
-                    )}
-                    {newsData?.data?.length === 0 && !isLoading && (
-                        <p className="news-empty">{isRTL ? 'خبری یافت نشد' : 'No news found'}</p>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-}
-
 interface SignalsPageProps {
-    onSelectSymbol: (symbol: string) => void;
-    onBack: () => void;
+  onSelectSymbol: (symbol: string) => void;
+  onBack: () => void;
 }
 
-type Tab = 'signals' | 'pullbacks' | 'reapproach' | 'weekly-pullbacks' | 'weekly-reapproach' | 'weekly-above-ema50' | 'daily-above-ema50-long' | 'weekly-above-ema50-long' | '4h-pullbacks' | '4h-reapproach' | 'monthly-pullbacks' | 'monthly-reapproach' | 'ema21-daily-pullback' | 'ema21-daily-reapproach' | 'ema21-4h-pullback' | 'ema21-4h-reapproach' | 'ema21-weekly-pullback' | 'ema21-weekly-reapproach';
-
-const Icons = {
-    trending: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 3v18h18"/>
-            <path d="M7 16l4-4 4 4 5-5"/>
-        </svg>
-    ),
-    pullback4h: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 16V8"/>
-            <path d="M8 16v-4"/>
-            <path d="M16 16v-2"/>
-            <circle cx="12" cy="6" r="2"/>
-        </svg>
-    ),
-    reapproach4h: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M2 12h4l3-7 4 14 3-7h4"/>
-        </svg>
-    ),
-    pullback: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 17h-6l-3 3-3-3H5"/>
-            <path d="M12 3v14"/>
-            <path d="M8 7l-4 4 4 4"/>
-        </svg>
-    ),
-    reapproach: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-        </svg>
-    ),
-    pullbackWeekly: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="4" width="18" height="18" rx="2"/>
-            <path d="M16 2v4"/>
-            <path d="M8 2v4"/>
-            <path d="M3 10h18"/>
-            <path d="M8 14h.01"/>
-            <path d="M12 14h.01"/>
-            <path d="M16 14h.01"/>
-        </svg>
-    ),
-    reapproachWeekly: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"/>
-            <polyline points="12 6 12 12 16 14"/>
-        </svg>
-    ),
-    pullbackMonthly: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="2" y="3" width="20" height="18" rx="2"/>
-            <path d="M2 9h20"/>
-            <path d="M6 13h2"/>
-            <path d="M10 13h2"/>
-            <path d="M14 13h2"/>
-            <path d="M18 13h2"/>
-            <path d="M6 17h2"/>
-            <path d="M10 17h2"/>
-            <path d="M14 17h2"/>
-            <path d="M18 17h2"/>
-        </svg>
-    ),
-    reapproachMonthly: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-            <line x1="12" y1="22.08" x2="12" y2="12"/>
-        </svg>
-    ),
-    ema21: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M2 12h3l3-9 4 18 3-9h7"/>
-        </svg>
-    ),
-    aboveEma: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 19V5"/>
-            <path d="M5 12l7-7 7 7"/>
-        </svg>
-    ),
-    longEma: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 19V5"/>
-            <path d="M5 12l7-7 7 7"/>
-            <path d="M5 19h14"/>
-        </svg>
-    ),
-    longWeekly: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-        </svg>
-    ),
-};
+type LongShortItem = { symbol: string; priceChange: number; oiChange: number };
 
 export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
-    const { isRTL } = useI18n();
-    const queryClient = useQueryClient();
-    const [activeTab, setActiveTab] = useState<Tab | null>(null);
-    const [watchlistSymbols, setWatchlistSymbols] = useState<Set<string>>(new Set());
-    const [newsSymbol, setNewsSymbol] = useState<string | null>(null);
-    const [useReliableSignals, setUseReliableSignals] = useState(false);
-    const { progress: scanProgress } = useScanProgress();
+  const { isRTL } = useI18n();
+  const { exchange } = useExchange();
+  const { progress: scanProgress } = useScanProgress();
+  const [activeTab, setActiveTab] = useState<ScannerTab | null>(null);
+  const [useReliableSignals, setUseReliableSignals] = useState(false);
+  const [newsSymbol, setNewsSymbol] = useState<string | null>(null);
 
-    const { data: watchlistData } = useQuery({
-        queryKey: ['watchlist'],
-        queryFn: async () => {
-            const res = await fetch('http://localhost:3000/watchlist');
-            if (!res.ok) return [];
-            return res.json();
-        },
-    });
+  const scanner = useScannerData({ activeTab, useReliableSignals, exchange });
+  const handleOpenNews = useCallback((symbol: string) => setNewsSymbol(symbol), []);
+  const handleOpenTradingView = useCallback((symbol: string) => window.open(`https://www.tradingview.com/symbols/${symbol}/`, '_blank'), []);
 
-    useEffect(() => {
-        if (watchlistData) {
-            setWatchlistSymbols(new Set(watchlistData.map((item: { symbol: string }) => item.symbol)));
+  const handleToggleReliable = useCallback(() => {
+    setUseReliableSignals(prev => {
+      const next = !prev;
+      if (activeTab === 'signals') {
+        if (next) {
+          scanner.refetchReliableSignals();
+        } else {
+          scanner.refetchSignals();
         }
-    }, [watchlistData]);
-
-    const addMutation = useMutation({
-        mutationFn: addToWatchlist,
-        onSuccess: (_, symbol) => {
-            setWatchlistSymbols(prev => new Set([...prev, symbol]));
-            queryClient.invalidateQueries({ queryKey: ['watchlist'] });
-        },
+      }
+      return next;
     });
+  }, [activeTab, scanner]);
 
-    const handleAddToWatchlist = (e: React.MouseEvent, symbol: string) => {
-        e.stopPropagation();
-        addMutation.mutate(symbol);
-    };
+  const renderTabContent = () => {
+    const tab = scanner.activeTab;
+    if (!tab) return null;
 
-    const { data: signalsData, isLoading: signalsLoading, refetch: refetchSignals } = useQuery({
-        queryKey: ['signals'],
-        queryFn: fetchLongs,
-        enabled: activeTab === 'signals' && !useReliableSignals,
-        staleTime: 60000,
-    });
+    if (tab === 'signals') {
+      return (
+        <SignalsTab
+          signalsData={scanner.signalsData}
+          reliableSignalsData={scanner.reliableSignalsData}
+          fakeSignalsData={scanner.fakeSignalsData}
+          signalsLoading={scanner.signalsLoading}
+          reliableSignalsLoading={scanner.reliableSignalsLoading}
+          fakeSignalsLoading={scanner.fakeSignalsLoading}
+          useReliableSignals={scanner.useReliableSignals}
+          isRTL={isRTL}
+          scanProgress={scanProgress}
+          onSelectSymbol={onSelectSymbol}
+          onOpenNews={handleOpenNews}
+          onOpenTradingView={handleOpenTradingView}
+          onToggleWatchlist={scanner.handleAddToWatchlist}
+          watchlistSymbols={scanner.watchlistSymbols}
+        />
+      );
+    }
 
-    const { data: reliableSignalsData, isLoading: reliableSignalsLoading, refetch: refetchReliableSignals } = useQuery({
-        queryKey: ['reliable-signals'],
-        queryFn: fetchReliableLongs,
-        enabled: activeTab === 'signals' && useReliableSignals,
-        staleTime: 60000,
-    });
-
-    const { data: fakeSignalsData, isLoading: fakeSignalsLoading } = useQuery({
-        queryKey: ['fake-signals'],
-        queryFn: fetchFakeSignals,
-        enabled: activeTab === 'signals',
-        staleTime: 120000,
-    });
-
-    const getFakeSignalRisk = (symbol: string) => {
-        return fakeSignalsData?.risks.find((risk) => risk.symbol === symbol);
-    };
-
-    const { data: pullbacksData, isLoading: pullbacksLoading, refetch: refetchPullbacks } = useQuery({
-        queryKey: ['pullbacks'],
-        queryFn: fetchPullbacks,
-        enabled: activeTab === 'pullbacks',
-        staleTime: 60000,
-    });
-
-    const { data: reapproachData, isLoading: reapproachLoading, refetch: refetchReapproach } = useQuery({
-        queryKey: ['reapproach'],
-        queryFn: fetchReapproach,
-        enabled: activeTab === 'reapproach',
-        staleTime: 60000,
-    });
-
-    const { data: weeklyPullbacksData, isLoading: weeklyPullbacksLoading, refetch: refetchWeeklyPullbacks } = useQuery({
-        queryKey: ['weekly-pullbacks'],
-        queryFn: fetchWeeklyPullbacks,
-        enabled: activeTab === 'weekly-pullbacks',
-        staleTime: 120000,
-    });
-
-    const { data: weeklyReapproachData, isLoading: weeklyReapproachLoading, refetch: refetchWeeklyReapproach } = useQuery({
-        queryKey: ['weekly-reapproach'],
-        queryFn: fetchWeeklyReapproach,
-        enabled: activeTab === 'weekly-reapproach',
-        staleTime: 120000,
-    });
-
-    const { data: weeklyAboveEma50Data, isLoading: weeklyAboveEma50Loading, refetch: refetchWeeklyAboveEma50 } = useQuery({
-        queryKey: ['weekly-above-ema50'],
-        queryFn: fetchWeeklyAboveEma50,
-        enabled: activeTab === 'weekly-above-ema50',
-        staleTime: 120000,
-    });
-
-    const { data: dailyAboveEma50LongData, isLoading: dailyAboveEma50LongLoading, refetch: refetchDailyAboveEma50Long } = useQuery({
-        queryKey: ['daily-above-ema50-long'],
-        queryFn: fetchDailyAboveEma50Long,
-        enabled: activeTab === 'daily-above-ema50-long',
-        staleTime: 120000,
-    });
-
-    const { data: weeklyAboveEma50LongData, isLoading: weeklyAboveEma50LongLoading, refetch: refetchWeeklyAboveEma50Long } = useQuery({
-        queryKey: ['weekly-above-ema50-long'],
-        queryFn: fetchWeeklyAboveEma50Long,
-        enabled: activeTab === 'weekly-above-ema50-long',
-        staleTime: 120000,
-    });
-
-    const { data: pullbacks4hData, isLoading: pullbacks4hLoading, refetch: refetchPullbacks4h } = useQuery({
-        queryKey: ['4h-pullbacks'],
-        queryFn: fetch4hPullbacks,
-        enabled: activeTab === '4h-pullbacks',
-        staleTime: 120000,
-    });
-
-    const { data: monthlyPullbacksData, isLoading: monthlyPullbacksLoading, refetch: refetchMonthlyPullbacks } = useQuery({
-        queryKey: ['monthly-pullbacks'],
-        queryFn: fetchMonthlyPullbacks,
-        enabled: activeTab === 'monthly-pullbacks',
-        staleTime: 300000,
-    });
-
-    const { data: monthlyReapproachData, isLoading: monthlyReapproachLoading, refetch: refetchMonthlyReapproach } = useQuery({
-        queryKey: ['monthly-reapproach'],
-        queryFn: fetchMonthlyReapproach,
-        enabled: activeTab === 'monthly-reapproach',
-        staleTime: 300000,
-    });
-
-    const { data: reapproach4hData, isLoading: reapproach4hLoading, refetch: refetchReapproach4h } = useQuery({
-        queryKey: ['4h-reapproach'],
-        queryFn: fetch4hReapproach,
-        enabled: activeTab === '4h-reapproach',
-        staleTime: 120000,
-    });
-
-    const { data: ema21DailyPullbackData, isLoading: ema21DailyPullbackLoading, refetch: refetchEma21DailyPullback } = useQuery({
-        queryKey: ['ema21-daily-pullback'],
-        queryFn: () => fetchEma21Pullbacks('1d'),
-        enabled: activeTab === 'ema21-daily-pullback',
-        staleTime: 300000,
-    });
-
-    const { data: ema21DailyReapproachData, isLoading: ema21DailyReapproachLoading, refetch: refetchEma21DailyReapproach } = useQuery({
-        queryKey: ['ema21-daily-reapproach'],
-        queryFn: () => fetchEma21Reapproach('1d'),
-        enabled: activeTab === 'ema21-daily-reapproach',
-        staleTime: 300000,
-    });
-
-    const { data: ema214hPullbackData, isLoading: ema214hPullbackLoading, refetch: refetchEma214hPullback } = useQuery({
-        queryKey: ['ema21-4h-pullback'],
-        queryFn: () => fetchEma21Pullbacks('4h'),
-        enabled: activeTab === 'ema21-4h-pullback',
-        staleTime: 180000,
-    });
-
-    const { data: ema214hReapproachData, isLoading: ema214hReapproachLoading, refetch: refetchEma214hReapproach } = useQuery({
-        queryKey: ['ema21-4h-reapproach'],
-        queryFn: () => fetchEma21Reapproach('4h'),
-        enabled: activeTab === 'ema21-4h-reapproach',
-        staleTime: 180000,
-    });
-
-    const { data: ema21WeeklyPullbackData, isLoading: ema21WeeklyPullbackLoading, refetch: refetchEma21WeeklyPullback } = useQuery({
-        queryKey: ['ema21-weekly-pullback'],
-        queryFn: () => fetchEma21Pullbacks('1w'),
-        enabled: activeTab === 'ema21-weekly-pullback',
-        staleTime: 600000,
-    });
-
-    const { data: ema21WeeklyReapproachData, isLoading: ema21WeeklyReapproachLoading, refetch: refetchEma21WeeklyReapproach } = useQuery({
-        queryKey: ['ema21-weekly-reapproach'],
-        queryFn: () => fetchEma21Reapproach('1w'),
-        enabled: activeTab === 'ema21-weekly-reapproach',
-        staleTime: 600000,
-    });
-
-    const handleRefresh = () => {
-        if (activeTab === 'signals') {
-            if (useReliableSignals) {
-                refetchReliableSignals();
-            } else {
-                refetchSignals();
-            }
-        }
-        else if (activeTab === 'pullbacks') refetchPullbacks();
-        else if (activeTab === 'reapproach') refetchReapproach();
-        else if (activeTab === 'weekly-pullbacks') refetchWeeklyPullbacks();
-        else if (activeTab === 'weekly-reapproach') refetchWeeklyReapproach();
-        else if (activeTab === 'weekly-above-ema50') refetchWeeklyAboveEma50();
-        else if (activeTab === 'daily-above-ema50-long') refetchDailyAboveEma50Long();
-        else if (activeTab === '4h-pullbacks') refetchPullbacks4h();
-        else if (activeTab === '4h-reapproach') refetchReapproach4h();
-        else if (activeTab === 'monthly-pullbacks') refetchMonthlyPullbacks();
-        else if (activeTab === 'monthly-reapproach') refetchMonthlyReapproach();
-        else if (activeTab === 'ema21-daily-pullback') refetchEma21DailyPullback();
-        else if (activeTab === 'ema21-daily-reapproach') refetchEma21DailyReapproach();
-        else if (activeTab === 'ema21-4h-pullback') refetchEma214hPullback();
-        else if (activeTab === 'ema21-4h-reapproach') refetchEma214hReapproach();
-        else if (activeTab === 'ema21-weekly-pullback') refetchEma21WeeklyPullback();
-        else if (activeTab === 'ema21-weekly-reapproach') refetchEma21WeeklyReapproach();
-        else refetchWeeklyAboveEma50Long();
-    };
-
-    const isLoading = signalsLoading || reliableSignalsLoading || pullbacksLoading || reapproachLoading || weeklyPullbacksLoading || weeklyReapproachLoading || weeklyAboveEma50Loading || dailyAboveEma50LongLoading || weeklyAboveEma50LongLoading || pullbacks4hLoading || monthlyPullbacksLoading || monthlyReapproachLoading || reapproach4hLoading || ema21DailyPullbackLoading || ema21DailyReapproachLoading || ema214hPullbackLoading || ema214hReapproachLoading || ema21WeeklyPullbackLoading || ema21WeeklyReapproachLoading;
-
-    const handleOpenTradingView = (symbol: string) => {
-        window.open(`https://www.tradingview.com/symbols/${symbol}/`, '_blank');
-    };
-
-    const handleOpenNews = (symbol: string) => {
-        setNewsSymbol(symbol);
-    };
-
-    const handleDownload = async () => {
-        if (!activeTab) return;
-        const ex = typeof window !== 'undefined' ? (localStorage.getItem('selected_exchange') ?? 'BINANCE') : 'BINANCE';
-        try {
-            const res = await fetch(`http://localhost:3000/market-scanner/export?type=${activeTab}&exchange=${ex}&limit=200`);
-            if (!res.ok) throw new Error('Failed to export');
-            const csv = await res.text();
-            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            const fileName = `signals-${activeTab}-${ex}-${new Date().toISOString().slice(0,10)}.csv`;
-            link.download = fileName;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-        } catch (err) {
-            console.error('Download failed:', err);
-        }
-    };
-
-    const renderSignalItem = (item: SymbolSignal, index: number) => {
-        const fakeRisk = getFakeSignalRisk(item.symbol);
-        const riskClass =
-            fakeRisk?.riskLevel === 'HIGH'
-                ? 'high'
-                : fakeRisk?.riskLevel === 'MEDIUM'
-                  ? 'medium'
-                  : 'low';
-
-        return (
-            <div key={item.symbol} className="signal-item" onClick={() => onSelectSymbol(item.symbol)}>
-                <div className="signal-rank">{index + 1}</div>
-                <div className="signal-info">
-                    <span className="signal-symbol">{item.symbol}</span>
-                    <span className={`signal-badge ${item.signal.includes('LONG') ? 'long' : 'short'}`}>
-                        {item.signal === 'STRONG_LONG' || item.signal === 'STRONG_SHORT' ? '🚀' : '📈'} {item.score.toFixed(0)}
-                    </span>
-                </div>
-                <div className="signal-stats">
-                    <span className={`signal-stat ${item.priceChange >= 0 ? 'pos' : 'neg'}`}>
-                        {item.priceChange > 0 ? '+' : ''}{item.priceChange.toFixed(2)}%
-                    </span>
-                    <span className="signal-stat">OI {item.oiChange > 0 ? '+' : ''}{item.oiChange.toFixed(1)}%</span>
-                    {fakeRisk && (
-                        <span className={`signal-stat fake-risk ${riskClass}`}>
-                            ⚠️ {fakeRisk.fakeSignalProbability.toFixed(0)}%
-                        </span>
-                    )}
-                </div>
-                <div className="signal-actions">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => { e.stopPropagation(); handleOpenNews(item.symbol); }}
-                    title={isRTL ? 'اخبار' : 'News'}
-                >
-                    📰
-                </Button>
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => { e.stopPropagation(); handleOpenTradingView(item.symbol); }}
-                    title="TradingView"
-                >
-                    📉
-                </Button>
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => handleAddToWatchlist(e, item.symbol)}
-                >
-                    {watchlistSymbols.has(item.symbol) ? '⭐' : '☆'}
-                </Button>
-            </div>
-        </div>
-    );
-    };
-
-    const renderPullbackItem = (item: PullbackSignal, index: number) => (
-        <div key={item.symbol} className={`signal-item ${item.maPullback === 'BULLISH_PULLBACK' ? 'pullback-bull' : 'pullback-bear'}`} onClick={() => onSelectSymbol(item.symbol)}>
-            <div className="signal-rank">{index + 1}</div>
-            <div className="signal-info">
-                <span className="signal-symbol">{item.symbol}</span>
-                <span className="signal-badge pullback">
-                    {item.maPullback === 'BULLISH_PULLBACK' ? '🟢' : '🔴'} ×{item.maPullbackTouches}
+    if (tab === 'weekly-above-ema50' || tab === 'daily-above-ema50-long' || tab === 'weekly-above-ema50-long') {
+      const isWeeklyAbove = tab === 'weekly-above-ema50';
+      const isDaily = tab === 'daily-above-ema50-long';
+      const data = isWeeklyAbove
+        ? scanner.weeklyAboveEma50Data
+        : isDaily
+          ? scanner.dailyAboveEma50LongData
+          : scanner.weeklyAboveEma50LongData;
+      const loading = isWeeklyAbove
+        ? scanner.weeklyAboveEma50Loading
+        : isDaily
+          ? scanner.dailyAboveEma50LongLoading
+          : scanner.weeklyAboveEma50LongLoading;
+      return (
+        <AboveEmaTab
+          data={data as unknown as { symbols: LongShortItem[] }}
+          isLoading={loading}
+          isRTL={isRTL}
+          scanProgress={scanProgress}
+          title={isRTL ? 'بالای EMA50' : 'Above EMA'}
+          emptyText={isRTL ? 'ارزی بالای EMA50 یافت نشد' : 'No symbols above EMA50'}
+          renderItem={(item, index) => (
+            <div key={(item as SymbolSignal).symbol} className="signal-item pullback-bull" onClick={() => onSelectSymbol((item as SymbolSignal).symbol)}>
+              <div className="signal-rank">{index + 1}</div>
+              <div className="signal-info">
+                <span className="signal-symbol">{(item as SymbolSignal).symbol}</span>
+                <span className="signal-badge long">
+                  ↑ {(item as SymbolSignal).priceVsEma50 !== null ? `+${(item as SymbolSignal).priceVsEma50.toFixed(1)}%` : '-'}
                 </span>
-            </div>
-            <div className="signal-stats">
-                <span className={`signal-stat ${item.priceChange >= 0 ? 'pos' : 'neg'}`}>
-                    {item.priceChange > 0 ? '+' : ''}{item.priceChange.toFixed(2)}%
+              </div>
+              <div className="signal-stats">
+                <span className={`signal-stat ${(item as SymbolSignal).priceChange >= 0 ? 'pos' : 'neg'}`}>
+                  {(item as SymbolSignal).priceChange > 0 ? '+' : ''}{(item as SymbolSignal).priceChange.toFixed(2)}%
                 </span>
-                <span className="signal-stat">EMA50: {item.priceVsEma50 !== null ? `${item.priceVsEma50 > 0 ? '+' : ''}${item.priceVsEma50.toFixed(1)}%` : '-'}</span>
+              </div>
+              <div className="signal-actions">
+                <button type="button" className="btn btn-ghost btn-sm" onClick={(e) => { e.stopPropagation(); handleOpenNews((item as SymbolSignal).symbol); }} title={isRTL ? 'اخبار' : 'News'}>📰</button>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={(e) => { e.stopPropagation(); handleOpenTradingView((item as SymbolSignal).symbol); }} title="TradingView">📉</button>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={(e) => scanner.handleAddToWatchlist(e, (item as SymbolSignal).symbol)}>
+                  {scanner.watchlistSymbols.has((item as SymbolSignal).symbol) ? '⭐' : '☆'}
+                </button>
+              </div>
             </div>
-            <div className="signal-actions">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => { e.stopPropagation(); handleOpenNews(item.symbol); }}
-                    title={isRTL ? 'اخبار' : 'News'}
-                >
-                    📰
-                </Button>
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => { e.stopPropagation(); handleOpenTradingView(item.symbol); }}
-                    title="TradingView"
-                >
-                    📉
-                </Button>
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => handleAddToWatchlist(e, item.symbol)}
-                >
-                    {watchlistSymbols.has(item.symbol) ? '⭐' : '☆'}
-                </Button>
-            </div>
-        </div>
-    );
+          )}
+        />
+      );
+    }
 
-    const renderReapproachItem = (item: ReapproachSignal, index: number) => (
-        <div key={item.symbol} className={`signal-item ${item.maReapproach === 'BULLISH_REAPPROACH' ? 'pullback-bull' : 'pullback-bear'}`} onClick={() => onSelectSymbol(item.symbol)}>
-            <div className="signal-rank">{index + 1}</div>
-            <div className="signal-info">
-                <span className="signal-symbol">{item.symbol}</span>
-                <span className="signal-badge reapproach">
-                    {item.maReapproach === 'BULLISH_REAPPROACH' ? '🔼' : '🔽'} {item.currentDistance !== null ? `${item.currentDistance > 0 ? '+' : ''}${item.currentDistance.toFixed(1)}%` : '-'}
-                </span>
-            </div>
-            <div className="signal-stats">
-                <span className={`signal-stat ${item.priceChange >= 0 ? 'pos' : 'neg'}`}>
-                    {item.priceChange > 0 ? '+' : ''}{item.priceChange.toFixed(2)}%
-                </span>
-                <span className="signal-stat">EMA50: {item.priceVsEma50 !== null ? `${item.priceVsEma50 > 0 ? '+' : ''}${item.priceVsEma50.toFixed(1)}%` : '-'}</span>
-            </div>
-            <div className="signal-actions">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => { e.stopPropagation(); handleOpenNews(item.symbol); }}
-                    title={isRTL ? 'اخبار' : 'News'}
-                >
-                    📰
-                </Button>
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => { e.stopPropagation(); handleOpenTradingView(item.symbol); }}
-                    title="TradingView"
-                >
-                    📉
-                </Button>
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => handleAddToWatchlist(e, item.symbol)}
-                >
-                    {watchlistSymbols.has(item.symbol) ? '⭐' : '☆'}
-                </Button>
-            </div>
-        </div>
-    );
+    const configs: { [K in ScannerTab]?: { data: { longs: LongShortItem[]; shorts: LongShortItem[] } | undefined; loading: boolean; longTitle: string; shortTitle: string; emptyText: string } } = {
+      pullbacks: { data: scanner.pullbacksData as unknown as { longs: LongShortItem[]; shorts: LongShortItem[] }, loading: scanner.pullbacksLoading, longTitle: isRTL ? 'پولبک صعودی (حمایت)' : 'Bullish Pullback (Support)', shortTitle: isRTL ? 'پولبک نزولی (مقاومت)' : 'Bearish Pullback (Resistance)', emptyText: isRTL ? 'پولبکی یافت نشد' : 'No pullbacks found' },
+      reapproach: { data: scanner.reapproachData as unknown as { longs: LongShortItem[]; shorts: LongShortItem[] }, loading: scanner.reapproachLoading, longTitle: isRTL ? 'برخورد صعودی' : 'Bullish Reapproach', shortTitle: isRTL ? 'برخورد نزولی' : 'Bearish Reapproach', emptyText: isRTL ? 'سیگنالی یافت نشد' : 'No reapproach signals' },
+      'weekly-pullbacks': { data: scanner.weeklyPullbacksData as unknown as { longs: LongShortItem[]; shorts: LongShortItem[] }, loading: scanner.weeklyPullbacksLoading, longTitle: isRTL ? 'پولبک صعودی هفتگی' : 'Weekly Bullish Pullback', shortTitle: isRTL ? 'پولبک نزولی هفتگی' : 'Weekly Bearish Pullback', emptyText: isRTL ? 'پولبکی یافت نشد' : 'No weekly pullbacks' },
+      'weekly-reapproach': { data: scanner.weeklyReapproachData as unknown as { longs: LongShortItem[]; shorts: LongShortItem[] }, loading: scanner.weeklyReapproachLoading, longTitle: isRTL ? 'برخورد صعودی هفتگی' : 'Weekly Bullish Reapproach', shortTitle: isRTL ? 'برخورد نزولی هفتگی' : 'Weekly Bearish Reapproach', emptyText: isRTL ? 'سیگنالی یافت نشد' : 'No weekly reapproach' },
+      '4h-pullbacks': { data: scanner.pullbacks4hData as unknown as { longs: LongShortItem[]; shorts: LongShortItem[] }, loading: scanner.pullbacks4hLoading, longTitle: isRTL ? 'پولبک صعودی 4ساعته' : '4h Bullish Pullback', shortTitle: isRTL ? 'پولبک نزولی 4ساعته' : '4h Bearish Pullback', emptyText: isRTL ? 'پولبکی یافت نشد' : 'No 4h pullbacks' },
+      '4h-reapproach': { data: scanner.reapproach4hData as unknown as { longs: LongShortItem[]; shorts: LongShortItem[] }, loading: scanner.reapproach4hLoading, longTitle: isRTL ? 'برخورد صعودی 4ساعته' : '4h Bullish Reapproach', shortTitle: isRTL ? 'برخورد نزولی 4ساعته' : '4h Bearish Reapproach', emptyText: isRTL ? 'سیگنالی یافت نشد' : 'No 4h reapproach' },
+      'monthly-pullbacks': { data: scanner.monthlyPullbacksData as unknown as { longs: LongShortItem[]; shorts: LongShortItem[] }, loading: scanner.monthlyPullbacksLoading, longTitle: isRTL ? 'پولبک صعودی ماهانه' : 'Monthly Bullish Pullback', shortTitle: isRTL ? 'پولبک نزولی ماهانه' : 'Monthly Bearish Pullback', emptyText: isRTL ? 'پولبکی یافت نشد' : 'No monthly pullbacks' },
+      'monthly-reapproach': { data: scanner.monthlyReapproachData as unknown as { longs: LongShortItem[]; shorts: LongShortItem[] }, loading: scanner.monthlyReapproachLoading, longTitle: isRTL ? 'برخورد صعودی ماهانه' : 'Monthly Bullish Reapproach', shortTitle: isRTL ? 'برخورد نزولی ماهانه' : 'Monthly Bearish Reapproach', emptyText: isRTL ? 'سیگنالی یافت نشد' : 'No monthly reapproach' },
+      'ema21-daily-pullback': { data: scanner.ema21DailyPullbackData as unknown as { longs: LongShortItem[]; shorts: LongShortItem[] }, loading: scanner.ema21DailyPullbackLoading, longTitle: isRTL ? 'پولبک صعودی روزانه (EMA21)' : 'Daily Bullish Pullback (EMA21)', shortTitle: isRTL ? 'پولبک نزولی روزانه (EMA21)' : 'Daily Bearish Pullback (EMA21)', emptyText: isRTL ? 'پولبکی یافت نشد' : 'No daily pullbacks' },
+      'ema21-daily-reapproach': { data: scanner.ema21DailyReapproachData as unknown as { longs: LongShortItem[]; shorts: LongShortItem[] }, loading: scanner.ema21DailyReapproachLoading, longTitle: isRTL ? 'برخورد صعودی روزانه (EMA21)' : 'Daily Bullish Reapproach (EMA21)', shortTitle: isRTL ? 'برخورد نزولی روزانه (EMA21)' : 'Daily Bearish Reapproach (EMA21)', emptyText: isRTL ? 'سیگنالی یافت نشد' : 'No daily reapproach' },
+      'ema21-4h-pullback': { data: scanner.ema214hPullbackData as unknown as { longs: LongShortItem[]; shorts: LongShortItem[] }, loading: scanner.ema214hPullbackLoading, longTitle: isRTL ? 'پولبک صعودی ۴ساعته (EMA21)' : '4H Bullish Pullback (EMA21)', shortTitle: isRTL ? 'پولبک نزولی ۴ساعته (EMA21)' : '4H Bearish Pullback (EMA21)', emptyText: isRTL ? 'پولبکی یافت نشد' : 'No 4H pullbacks' },
+      'ema21-4h-reapproach': { data: scanner.ema214hReapproachData as unknown as { longs: LongShortItem[]; shorts: LongShortItem[] }, loading: scanner.ema214hReapproachLoading, longTitle: isRTL ? 'برخورد صعودی ۴ساعته (EMA21)' : '4H Bullish Reapproach (EMA21)', shortTitle: isRTL ? 'برخورد نزولی ۴ساعته (EMA21)' : '4H Bearish Reapproach (EMA21)', emptyText: isRTL ? 'سیگنالی یافت نشد' : 'No 4H reapproach' },
+      'ema21-weekly-pullback': { data: scanner.ema21WeeklyPullbackData as unknown as { longs: LongShortItem[]; shorts: LongShortItem[] }, loading: scanner.ema21WeeklyPullbackLoading, longTitle: isRTL ? 'پولبک صعودی هفتگی (EMA21)' : 'Weekly Bullish Pullback (EMA21)', shortTitle: isRTL ? 'پولبک نزولی هفتگی (EMA21)' : 'Weekly Bearish Pullback (EMA21)', emptyText: isRTL ? 'پولبکی یافت نشد' : 'No weekly pullbacks' },
+      'ema21-weekly-reapproach': { data: scanner.ema21WeeklyReapproachData as unknown as { longs: LongShortItem[]; shorts: LongShortItem[] }, loading: scanner.ema21WeeklyReapproachLoading, longTitle: isRTL ? 'برخورد صعودی هفتگی (EMA21)' : 'Weekly Bullish Reapproach (EMA21)', shortTitle: isRTL ? 'برخورد نزولی هفتگی (EMA21)' : 'Weekly Bearish Reapproach (EMA21)', emptyText: isRTL ? 'سیگنالی یافت نشد' : 'No weekly reapproach' },
+    };
+
+    const config = configs[tab];
+    if (!config) return null;
 
     return (
-        <>
-        <div className="signals-page">
-            <div className="signals-header">
-                <Button variant="ghost" size="sm" onClick={onBack}>
-                    ← {isRTL ? 'بازگشت' : 'Back'}
-                </Button>
-                <h2>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle', marginRight: '8px' }}>
-                        <path d="M3 3v18h18"/>
-                        <path d="M7 16l4-4 4 4 5-5"/>
-                    </svg>
-                    {isRTL ? 'سیگنال‌های بازار' : 'Market Signals'}
-                </h2>
-                 <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={isLoading}>
-                     🔄
-                 </Button>
-                 <Button variant="ghost" size="sm" onClick={handleDownload} disabled={isLoading || !activeTab} title={isRTL ? 'دانلود CSV' : 'Download CSV'}>
-                     📥
-                 </Button>
-                 <Button
-                     variant={useReliableSignals ? 'purple' : 'ghost'}
-                     size="sm"
-                     onClick={() => {
-                         setUseReliableSignals(!useReliableSignals);
-                         if (activeTab === 'signals') {
-                             if (!useReliableSignals) {
-                                 refetchReliableSignals();
-                             } else {
-                                 refetchSignals();
-                             }
-                         }
-                     }}
-                     disabled={activeTab !== 'signals'}
-                 >
-                     {useReliableSignals ? '🎯' : '📊'} {useReliableSignals ? (isRTL ? 'EMA50 + لانگ/شورت' : 'EMA50 + Long/Short') : (isRTL ? 'همه سیگنال‌ها' : 'All Signals')}
-                 </Button>
-             </div>
-
-            <div className="signals-tabs">
-                <button className={`signals-tab ${activeTab === 'signals' ? 'active' : ''}`} onClick={() => setActiveTab('signals')}>
-                    {Icons.trending}
-                    <span>{isRTL ? 'لانگ/شورت' : 'Longs/Shorts'}</span>
-                </button>
-                <button className={`signals-tab ${activeTab === '4h-pullbacks' ? 'active' : ''}`} onClick={() => setActiveTab('4h-pullbacks')}>
-                    {Icons.pullback4h}
-                    <span>{isRTL ? 'پولبک 4ساعته' : '4h Pullback'}</span>
-                    <span className="tab-subtitle">{isRTL ? 'EMA50' : 'EMA50'}</span>
-                </button>
-                <button className={`signals-tab ${activeTab === '4h-reapproach' ? 'active' : ''}`} onClick={() => setActiveTab('4h-reapproach')}>
-                    {Icons.reapproach4h}
-                    <span>{isRTL ? 'برخورد 4ساعته' : '4h Reapproach'}</span>
-                    <span className="tab-subtitle">{isRTL ? 'EMA50' : 'EMA50'}</span>
-                </button>
-                <button className={`signals-tab ${activeTab === 'pullbacks' ? 'active' : ''}`} onClick={() => setActiveTab('pullbacks')}>
-                    {Icons.pullback}
-                    <span>{isRTL ? 'پولبک روزانه' : 'Daily Pullback'}</span>
-                    <span className="tab-subtitle">{isRTL ? 'EMA50' : 'EMA50'}</span>
-                </button>
-                <button className={`signals-tab ${activeTab === 'reapproach' ? 'active' : ''}`} onClick={() => setActiveTab('reapproach')}>
-                    {Icons.reapproach}
-                    <span>{isRTL ? 'برخورد روزانه' : 'Daily Reapproach'}</span>
-                    <span className="tab-subtitle">{isRTL ? 'EMA50' : 'EMA50'}</span>
-                </button>
-                <button className={`signals-tab ${activeTab === 'weekly-pullbacks' ? 'active' : ''}`} onClick={() => setActiveTab('weekly-pullbacks')}>
-                    {Icons.pullbackWeekly}
-                    <span>{isRTL ? 'پولبک هفتگی' : 'Weekly Pullback'}</span>
-                    <span className="tab-subtitle">{isRTL ? 'EMA50' : 'EMA50'}</span>
-                </button>
-                <button className={`signals-tab ${activeTab === 'weekly-reapproach' ? 'active' : ''}`} onClick={() => setActiveTab('weekly-reapproach')}>
-                    {Icons.reapproachWeekly}
-                    <span>{isRTL ? 'برخورد هفتگی' : 'Weekly Reapproach'}</span>
-                    <span className="tab-subtitle">{isRTL ? 'EMA50' : 'EMA50'}</span>
-                </button>
-                <button className={`signals-tab ${activeTab === 'monthly-pullbacks' ? 'active' : ''}`} onClick={() => setActiveTab('monthly-pullbacks')}>
-                    {Icons.pullbackMonthly}
-                    <span>{isRTL ? 'پولبک ماهانه' : 'Monthly Pullback'}</span>
-                    <span className="tab-subtitle">{isRTL ? 'EMA50' : 'EMA50'}</span>
-                </button>
-                <button className={`signals-tab ${activeTab === 'monthly-reapproach' ? 'active' : ''}`} onClick={() => setActiveTab('monthly-reapproach')}>
-                    {Icons.reapproachMonthly}
-                    <span>{isRTL ? 'برخورد ماهانه' : 'Monthly Reapproach'}</span>
-                    <span className="tab-subtitle">{isRTL ? 'EMA50' : 'EMA50'}</span>
-                </button>
-                <button className={`signals-tab ${activeTab === 'ema21-daily-pullback' ? 'active' : ''}`} onClick={() => setActiveTab('ema21-daily-pullback')}>
-                    {Icons.ema21}
-                    <span>{isRTL ? 'پولبک روزانه' : 'Daily Pullback'}</span>
-                    <span className="tab-subtitle">{isRTL ? 'EMA21' : 'EMA21'}</span>
-                </button>
-                <button className={`signals-tab ${activeTab === 'ema21-daily-reapproach' ? 'active' : ''}`} onClick={() => setActiveTab('ema21-daily-reapproach')}>
-                    {Icons.ema21}
-                    <span>{isRTL ? 'برخورد روزانه' : 'Daily Reapproach'}</span>
-                    <span className="tab-subtitle">{isRTL ? 'EMA21' : 'EMA21'}</span>
-                </button>
-                <button className={`signals-tab ${activeTab === 'ema21-4h-pullback' ? 'active' : ''}`} onClick={() => setActiveTab('ema21-4h-pullback')}>
-                    {Icons.ema21}
-                    <span>{isRTL ? 'پولبک ۴ساعته' : '4H Pullback'}</span>
-                    <span className="tab-subtitle">{isRTL ? 'EMA21' : 'EMA21'}</span>
-                </button>
-                <button className={`signals-tab ${activeTab === 'ema21-4h-reapproach' ? 'active' : ''}`} onClick={() => setActiveTab('ema21-4h-reapproach')}>
-                    {Icons.ema21}
-                    <span>{isRTL ? 'برخورد ۴ساعته' : '4H Reapproach'}</span>
-                    <span className="tab-subtitle">{isRTL ? 'EMA21' : 'EMA21'}</span>
-                </button>
-                <button className={`signals-tab ${activeTab === 'ema21-weekly-pullback' ? 'active' : ''}`} onClick={() => setActiveTab('ema21-weekly-pullback')}>
-                    {Icons.ema21}
-                    <span>{isRTL ? 'پولبک هفتگی' : 'Weekly Pullback'}</span>
-                    <span className="tab-subtitle">{isRTL ? 'EMA21' : 'EMA21'}</span>
-                </button>
-                <button className={`signals-tab ${activeTab === 'ema21-weekly-reapproach' ? 'active' : ''}`} onClick={() => setActiveTab('ema21-weekly-reapproach')}>
-                    {Icons.ema21}
-                    <span>{isRTL ? 'برخورد هفتگی' : 'Weekly Reapproach'}</span>
-                    <span className="tab-subtitle">{isRTL ? 'EMA21' : 'EMA21'}</span>
-                </button>
-                <button className={`signals-tab ${activeTab === 'weekly-above-ema50' ? 'active' : ''}`} onClick={() => setActiveTab('weekly-above-ema50')}>
-                    {Icons.aboveEma}
-                    <span>{isRTL ? 'بالای EMA' : 'Above EMA'}</span>
-                    <span className="tab-subtitle">{isRTL ? 'هفتگی' : 'Weekly'}</span>
-                </button>
-                <button className={`signals-tab ${activeTab === 'daily-above-ema50-long' ? 'active' : ''}`} onClick={() => setActiveTab('daily-above-ema50-long')}>
-                    {Icons.longEma}
-                    <span>{isRTL ? 'لانگ + EMA' : 'Long + EMA'}</span>
-                    <span className="tab-subtitle">{isRTL ? 'روزانه' : 'Daily'}</span>
-                </button>
-                <button className={`signals-tab ${activeTab === 'weekly-above-ema50-long' ? 'active' : ''}`} onClick={() => setActiveTab('weekly-above-ema50-long')}>
-                    {Icons.longWeekly}
-                    <span>{isRTL ? 'لانگ + هفتگی' : 'Long + Weekly'}</span>
-                    <span className="tab-subtitle">{isRTL ? 'EMA50' : 'EMA50'}</span>
-                </button>
-            </div>
-
-            {activeTab === 'signals' && (
-                <div className="signals-content">
-                    <div className="fake-risk-legend">
-                        <span>⚠️ {isRTL ? 'احتمال فیک بودن سیگنال' : 'Fake Signal Probability'}</span>
-                        <span className="fake-risk-low">🟢 {isRTL ? 'کم' : 'Low'} (&lt;35%)</span>
-                        <span className="fake-risk-medium">🟡 {isRTL ? 'متوسط' : 'Medium'} (35-65%)</span>
-                        <span className="fake-risk-high">🔴 {isRTL ? 'زیاد' : 'High'} (&gt;65%)</span>
-                    </div>
-                    {(signalsLoading || reliableSignalsLoading || fakeSignalsLoading) && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
-                    {(useReliableSignals ? reliableSignalsData : signalsData) && (
-                        <>
-                            {(useReliableSignals ? reliableSignalsData : signalsData)!.longs.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🟢 {isRTL ? 'فرصت‌های لانگ' : 'Long Opportunities'}</h4>
-                                    {(useReliableSignals ? reliableSignalsData : signalsData)!.longs.map((item, i) => renderSignalItem(item, i))}
-                                </div>
-                            )}
-                            {(useReliableSignals ? reliableSignalsData : signalsData)!.shorts.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🔴 {isRTL ? 'فرصت‌های شورت' : 'Short Opportunities'}</h4>
-                                    {(useReliableSignals ? reliableSignalsData : signalsData)!.shorts.map((item, i) => renderSignalItem(item, i))}
-                                </div>
-                            )}
-                            {(useReliableSignals ? reliableSignalsData : signalsData)!.longs.length === 0 && (useReliableSignals ? reliableSignalsData : signalsData)!.shorts.length === 0 && (
-                                <p className="empty">{isRTL ? 'سیگنالی یافت نشد' : 'No signals found'}</p>
-                            )}
-                        </>
-                    )}
-                </div>
-            )}
-
-            {activeTab === 'pullbacks' && (
-                <div className="signals-content">
-                    {pullbacksLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
-                    {pullbacksData && (
-                        <>
-                            {pullbacksData.longs.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🟢 {isRTL ? 'پولبک صعودی (حمایت)' : 'Bullish Pullback (Support)'}</h4>
-                                    {pullbacksData.longs.map((item, i) => renderPullbackItem(item, i))}
-                                </div>
-                            )}
-                            {pullbacksData.shorts.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🔴 {isRTL ? 'پولبک نزولی (مقاومت)' : 'Bearish Pullback (Resistance)'}</h4>
-                                    {pullbacksData.shorts.map((item, i) => renderPullbackItem(item, i))}
-                                </div>
-                            )}
-                            {pullbacksData.longs.length === 0 && pullbacksData.shorts.length === 0 && (
-                                <p className="empty">{isRTL ? 'پولبکی یافت نشد' : 'No pullbacks found'}</p>
-                            )}
-                        </>
-                    )}
-                </div>
-            )}
-
-            {activeTab === 'reapproach' && (
-                <div className="signals-content">
-                    {reapproachLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
-                    {reapproachData && (
-                        <>
-                            {reapproachData.longs.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🔼 {isRTL ? 'برخورد صعودی' : 'Bullish Reapproach'}</h4>
-                                    {reapproachData.longs.map((item, i) => renderReapproachItem(item, i))}
-                                </div>
-                            )}
-                            {reapproachData.shorts.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🔽 {isRTL ? 'برخورد نزولی' : 'Bearish Reapproach'}</h4>
-                                    {reapproachData.shorts.map((item, i) => renderReapproachItem(item, i))}
-                                </div>
-                            )}
-                            {reapproachData.longs.length === 0 && reapproachData.shorts.length === 0 && (
-                                <p className="empty">{isRTL ? 'سیگنالی یافت نشد' : 'No reapproach signals'}</p>
-                            )}
-                        </>
-                    )}
-                </div>
-            )}
-
-            {activeTab === 'weekly-pullbacks' && (
-                <div className="signals-content">
-                    {weeklyPullbacksLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
-                    {weeklyPullbacksData && (
-                        <>
-                            {weeklyPullbacksData.longs.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🟢 {isRTL ? 'پولبک صعودی هفتگی' : 'Weekly Bullish Pullback'}</h4>
-                                    {weeklyPullbacksData.longs.map((item, i) => renderPullbackItem(item, i))}
-                                </div>
-                            )}
-                            {weeklyPullbacksData.shorts.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🔴 {isRTL ? 'پولبک نزولی هفتگی' : 'Weekly Bearish Pullback'}</h4>
-                                    {weeklyPullbacksData.shorts.map((item, i) => renderPullbackItem(item, i))}
-                                </div>
-                            )}
-                            {weeklyPullbacksData.longs.length === 0 && weeklyPullbacksData.shorts.length === 0 && (
-                                <p className="empty">{isRTL ? 'پولبکی یافت نشد' : 'No weekly pullbacks'}</p>
-                            )}
-                        </>
-                    )}
-                </div>
-            )}
-
-            {activeTab === 'weekly-reapproach' && (
-                <div className="signals-content">
-                    {weeklyReapproachLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
-                    {weeklyReapproachData && (
-                        <>
-                            {weeklyReapproachData.longs.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🔼 {isRTL ? 'برخورد صعودی هفتگی' : 'Weekly Bullish Reapproach'}</h4>
-                                    {weeklyReapproachData.longs.map((item, i) => renderReapproachItem(item, i))}
-                                </div>
-                            )}
-                            {weeklyReapproachData.shorts.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🔽 {isRTL ? 'برخورد نزولی هفتگی' : 'Weekly Bearish Reapproach'}</h4>
-                                    {weeklyReapproachData.shorts.map((item, i) => renderReapproachItem(item, i))}
-                                </div>
-                            )}
-                            {weeklyReapproachData.longs.length === 0 && weeklyReapproachData.shorts.length === 0 && (
-                                <p className="empty">{isRTL ? 'سیگنالی یافت نشد' : 'No weekly reapproach'}</p>
-                            )}
-                        </>
-                    )}
-                </div>
-            )}
-
-            {activeTab === 'weekly-above-ema50' && (
-                <div className="signals-content">
-                    {weeklyAboveEma50Loading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
-                    {weeklyAboveEma50Data && (
-                        <>
-                            {weeklyAboveEma50Data.symbols.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>⬆️ {isRTL ? 'بالای EMA50 هفتگی' : 'Weekly Above EMA50'}</h4>
-                                     {weeklyAboveEma50Data.symbols.map((item, i) => (
-                                        <div key={item.symbol} className="signal-item pullback-bull" onClick={() => onSelectSymbol(item.symbol)}>
-                                            <div className="signal-rank">{i + 1}</div>
-                                            <div className="signal-info">
-                                                <span className="signal-symbol">{item.symbol}</span>
-                                                <span className="signal-badge long">↑ {item.priceVsEma50 !== null ? `+${item.priceVsEma50.toFixed(1)}%` : '-'}</span>
-                                            </div>
-                                            <div className="signal-stats">
-                                                <span className="signal-stat pos">{item.priceVsEma50 !== null ? `+${item.priceVsEma50.toFixed(2)}%` : '-'}</span>
-                                            </div>
-                                             <div className="signal-actions">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={(e) => { e.stopPropagation(); handleOpenNews(item.symbol); }}
-                                                    title={isRTL ? 'اخبار' : 'News'}
-                                                >
-                                                    📰
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={(e) => { e.stopPropagation(); handleOpenTradingView(item.symbol); }}
-                                                    title="TradingView"
-                                                >
-                                                    📉
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={(e) => handleAddToWatchlist(e, item.symbol)}
-                                                >
-                                                    {watchlistSymbols.has(item.symbol) ? '⭐' : '☆'}
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                            {weeklyAboveEma50Data.symbols.length === 0 && (
-                                <p className="empty">{isRTL ? 'ارزی بالای EMA50 هفتگی یافت نشد' : 'No symbols above weekly EMA50'}</p>
-                            )}
-                        </>
-                    )}
-                </div>
-            )}
-
-            {activeTab === 'daily-above-ema50-long' && (
-                <div className="signals-content">
-                    {dailyAboveEma50LongLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
-                    {dailyAboveEma50LongData && (
-                        <>
-                            {dailyAboveEma50LongData.symbols.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🚀 {isRTL ? 'لانگ + بالای EMA50 روزانه' : 'Long + Daily Above EMA50'}</h4>
-                                    {dailyAboveEma50LongData.symbols.map((item, i) => (
-                                        <div key={item.symbol} className="signal-item pullback-bull" onClick={() => onSelectSymbol(item.symbol)}>
-                                            <div className="signal-rank">{i + 1}</div>
-                                            <div className="signal-info">
-                                                <span className="signal-symbol">{item.symbol}</span>
-                                                <span className="signal-badge long">↑ {item.priceVsEma50 !== null ? `+${item.priceVsEma50.toFixed(1)}%` : '-'}</span>
-                                            </div>
-                                            <div className="signal-stats">
-                                                <span className={`signal-stat ${item.priceChange >= 0 ? 'pos' : 'neg'}`}>
-                                                    {item.priceChange > 0 ? '+' : ''}{item.priceChange.toFixed(2)}%
-                                                </span>
-                                                <span className="signal-stat">Score: {item.score.toFixed(0)}</span>
-                                            </div>
-                                            <div className="signal-actions">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={(e) => { e.stopPropagation(); handleOpenNews(item.symbol); }}
-                                                    title={isRTL ? 'اخبار' : 'News'}
-                                                >
-                                                    📰
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={(e) => { e.stopPropagation(); handleOpenTradingView(item.symbol); }}
-                                                    title="TradingView"
-                                                >
-                                                    📉
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={(e) => handleAddToWatchlist(e, item.symbol)}
-                                                >
-                                                    {watchlistSymbols.has(item.symbol) ? '⭐' : '☆'}
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                            {dailyAboveEma50LongData.symbols.length === 0 && (
-                                <p className="empty">{isRTL ? 'سیگنالی یافت نشد' : 'No signals found'}</p>
-                            )}
-                        </>
-                    )}
-                </div>
-            )}
-
-            {activeTab === 'weekly-above-ema50-long' && (
-                <div className="signals-content">
-                    {weeklyAboveEma50LongLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
-                    {weeklyAboveEma50LongData && (
-                        <>
-                            {weeklyAboveEma50LongData.symbols.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🌟 {isRTL ? 'لانگ + بالای EMA50 هفتگی' : 'Long + Weekly Above EMA50'}</h4>
-                                    {weeklyAboveEma50LongData.symbols.map((item, i) => (
-                                        <div key={item.symbol} className="signal-item pullback-bull" onClick={() => onSelectSymbol(item.symbol)}>
-                                            <div className="signal-rank">{i + 1}</div>
-                                            <div className="signal-info">
-                                                <span className="signal-symbol">{item.symbol}</span>
-                                                <span className="signal-badge long">↑ {item.priceVsEma50 !== null ? `+${item.priceVsEma50.toFixed(1)}%` : '-'}</span>
-                                            </div>
-                                            <div className="signal-stats">
-                                                <span className={`signal-stat ${item.priceChange >= 0 ? 'pos' : 'neg'}`}>
-                                                    {item.priceChange > 0 ? '+' : ''}{item.priceChange.toFixed(2)}%
-                                                </span>
-                                                <span className="signal-stat">Score: {item.score.toFixed(0)}</span>
-                                            </div>
-                                            <div className="signal-actions">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={(e) => { e.stopPropagation(); handleOpenNews(item.symbol); }}
-                                                    title={isRTL ? 'اخبار' : 'News'}
-                                                >
-                                                    📰
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={(e) => { e.stopPropagation(); handleOpenTradingView(item.symbol); }}
-                                                    title="TradingView"
-                                                >
-                                                    📉
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={(e) => handleAddToWatchlist(e, item.symbol)}
-                                                >
-                                                    {watchlistSymbols.has(item.symbol) ? '⭐' : '☆'}
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                            {weeklyAboveEma50LongData.symbols.length === 0 && (
-                                <p className="empty">{isRTL ? 'سیگنالی یافت نشد' : 'No signals found'}</p>
-                            )}
-                        </>
-                    )}
-                </div>
-            )}
-
-            {activeTab === '4h-pullbacks' && (
-                <div className="signals-content">
-                    {pullbacks4hLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
-                    {pullbacks4hData && (
-                        <>
-                            {pullbacks4hData.longs.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🟢 {isRTL ? 'پولبک صعودی 4ساعته' : '4h Bullish Pullback'}</h4>
-                                    {pullbacks4hData.longs.map((item, i) => renderPullbackItem(item, i))}
-                                </div>
-                            )}
-                            {pullbacks4hData.shorts.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🔴 {isRTL ? 'پولبک نزولی 4ساعته' : '4h Bearish Pullback'}</h4>
-                                    {pullbacks4hData.shorts.map((item, i) => renderPullbackItem(item, i))}
-                                </div>
-                            )}
-                            {pullbacks4hData.longs.length === 0 && pullbacks4hData.shorts.length === 0 && (
-                                <p className="empty">{isRTL ? 'پولبکی یافت نشد' : 'No 4h pullbacks'}</p>
-                            )}
-                        </>
-                    )}
-                </div>
-            )}
-
-            {activeTab === 'monthly-pullbacks' && (
-                <div className="signals-content">
-                    {monthlyPullbacksLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
-                    {monthlyPullbacksData && (
-                        <>
-                            {monthlyPullbacksData.longs.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🟢 {isRTL ? 'پولبک صعودی ماهانه' : 'Monthly Bullish Pullback'}</h4>
-                                    {monthlyPullbacksData.longs.map((item, i) => renderPullbackItem(item, i))}
-                                </div>
-                            )}
-                            {monthlyPullbacksData.shorts.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🔴 {isRTL ? 'پولبک نزولی ماهانه' : 'Monthly Bearish Pullback'}</h4>
-                                    {monthlyPullbacksData.shorts.map((item, i) => renderPullbackItem(item, i))}
-                                </div>
-                            )}
-                            {monthlyPullbacksData.longs.length === 0 && monthlyPullbacksData.shorts.length === 0 && (
-                                <p className="empty">{isRTL ? 'پولبکی یافت نشد' : 'No monthly pullbacks'}</p>
-                            )}
-                        </>
-                    )}
-                </div>
-            )}
-
-            {activeTab === 'monthly-reapproach' && (
-                <div className="signals-content">
-                    {monthlyReapproachLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
-                    {monthlyReapproachData && (
-                        <>
-                            {monthlyReapproachData.longs.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🔼 {isRTL ? 'برخورد صعودی ماهانه' : 'Monthly Bullish Reapproach'}</h4>
-                                    {monthlyReapproachData.longs.map((item, i) => renderReapproachItem(item, i))}
-                                </div>
-                            )}
-                            {monthlyReapproachData.shorts.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🔽 {isRTL ? 'برخورد نزولی ماهانه' : 'Monthly Bearish Reapproach'}</h4>
-                                    {monthlyReapproachData.shorts.map((item, i) => renderReapproachItem(item, i))}
-                                </div>
-                            )}
-                             {monthlyReapproachData.longs.length === 0 && monthlyReapproachData.shorts.length === 0 && (
-                                <p className="empty">{isRTL ? 'سیگنالی یافت نشد' : 'No monthly reapproach'}</p>
-                            )}
-                        </>
-                    )}
-                </div>
-            )}
-
-            {activeTab === 'ema21-daily-pullback' && (
-                <div className="signals-content">
-                    {ema21DailyPullbackLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
-                    {ema21DailyPullbackData && (
-                        <>
-                            {ema21DailyPullbackData.longs.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🔼 {isRTL ? 'پولبک صعودی روزانه (EMA21)' : 'Daily Bullish Pullback (EMA21)'}</h4>
-                                    {ema21DailyPullbackData.longs.map((item, i) => renderPullbackItem(item, i))}
-                                </div>
-                            )}
-                            {ema21DailyPullbackData.shorts.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🔽 {isRTL ? 'پولبک نزولی روزانه (EMA21)' : 'Daily Bearish Pullback (EMA21)'}</h4>
-                                    {ema21DailyPullbackData.shorts.map((item, i) => renderPullbackItem(item, i))}
-                                </div>
-                            )}
-                            {ema21DailyPullbackData.longs.length === 0 && ema21DailyPullbackData.shorts.length === 0 && (
-                                <p className="empty">{isRTL ? 'پولبکی یافت نشد' : 'No daily pullbacks'}</p>
-                            )}
-                        </>
-                    )}
-                </div>
-            )}
-
-            {activeTab === 'ema21-daily-reapproach' && (
-                <div className="signals-content">
-                    {ema21DailyReapproachLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
-                    {ema21DailyReapproachData && (
-                        <>
-                            {ema21DailyReapproachData.longs.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🔼 {isRTL ? 'برخورد صعودی روزانه (EMA21)' : 'Daily Bullish Reapproach (EMA21)'}</h4>
-                                    {ema21DailyReapproachData.longs.map((item, i) => renderReapproachItem(item, i))}
-                                </div>
-                            )}
-                            {ema21DailyReapproachData.shorts.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🔽 {isRTL ? 'برخورد نزولی روزانه (EMA21)' : 'Daily Bearish Reapproach (EMA21)'}</h4>
-                                    {ema21DailyReapproachData.shorts.map((item, i) => renderReapproachItem(item, i))}
-                                </div>
-                            )}
-                            {ema21DailyReapproachData.longs.length === 0 && ema21DailyReapproachData.shorts.length === 0 && (
-                                <p className="empty">{isRTL ? 'سیگنالی یافت نشد' : 'No daily reapproach'}</p>
-                            )}
-                        </>
-                    )}
-                </div>
-            )}
-
-            {activeTab === 'ema21-4h-pullback' && (
-                <div className="signals-content">
-                    {ema214hPullbackLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
-                    {ema214hPullbackData && (
-                        <>
-                            {ema214hPullbackData.longs.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🔼 {isRTL ? 'پولبک صعودی ۴ساعته (EMA21)' : '4H Bullish Pullback (EMA21)'}</h4>
-                                    {ema214hPullbackData.longs.map((item, i) => renderPullbackItem(item, i))}
-                                </div>
-                            )}
-                            {ema214hPullbackData.shorts.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🔽 {isRTL ? 'پولبک نزولی ۴ساعته (EMA21)' : '4H Bearish Pullback (EMA21)'}</h4>
-                                    {ema214hPullbackData.shorts.map((item, i) => renderPullbackItem(item, i))}
-                                </div>
-                            )}
-                            {ema214hPullbackData.longs.length === 0 && ema214hPullbackData.shorts.length === 0 && (
-                                <p className="empty">{isRTL ? 'پولبکی یافت نشد' : 'No 4H pullbacks'}</p>
-                            )}
-                        </>
-                    )}
-                </div>
-            )}
-
-            {activeTab === 'ema21-4h-reapproach' && (
-                <div className="signals-content">
-                    {ema214hReapproachLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
-                    {ema214hReapproachData && (
-                        <>
-                            {ema214hReapproachData.longs.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🔼 {isRTL ? 'برخورد صعودی ۴ساعته (EMA21)' : '4H Bullish Reapproach (EMA21)'}</h4>
-                                    {ema214hReapproachData.longs.map((item, i) => renderReapproachItem(item, i))}
-                                </div>
-                            )}
-                            {ema214hReapproachData.shorts.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🔽 {isRTL ? 'برخورد نزولی ۴ساعته (EMA21)' : '4H Bearish Reapproach (EMA21)'}</h4>
-                                    {ema214hReapproachData.shorts.map((item, i) => renderReapproachItem(item, i))}
-                                </div>
-                            )}
-                            {ema214hReapproachData.longs.length === 0 && ema214hReapproachData.shorts.length === 0 && (
-                                <p className="empty">{isRTL ? 'سیگنالی یافت نشد' : 'No 4H reapproach'}</p>
-                            )}
-                        </>
-                    )}
-                </div>
-            )}
-
-            {activeTab === 'ema21-weekly-pullback' && (
-                <div className="signals-content">
-                    {ema21WeeklyPullbackLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
-                    {ema21WeeklyPullbackData && (
-                        <>
-                            {ema21WeeklyPullbackData.longs.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🔼 {isRTL ? 'پولبک صعودی هفتگی (EMA21)' : 'Weekly Bullish Pullback (EMA21)'}</h4>
-                                    {ema21WeeklyPullbackData.longs.map((item, i) => renderPullbackItem(item, i))}
-                                </div>
-                            )}
-                            {ema21WeeklyPullbackData.shorts.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🔽 {isRTL ? 'پولبک نزولی هفتگی (EMA21)' : 'Weekly Bearish Pullback (EMA21)'}</h4>
-                                    {ema21WeeklyPullbackData.shorts.map((item, i) => renderPullbackItem(item, i))}
-                                </div>
-                            )}
-                            {ema21WeeklyPullbackData.longs.length === 0 && ema21WeeklyPullbackData.shorts.length === 0 && (
-                                <p className="empty">{isRTL ? 'پولبکی یافت نشد' : 'No weekly pullbacks'}</p>
-                            )}
-                        </>
-                    )}
-                </div>
-            )}
-
-            {activeTab === 'ema21-weekly-reapproach' && (
-                <div className="signals-content">
-                    {ema21WeeklyReapproachLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
-                    {ema21WeeklyReapproachData && (
-                        <>
-                            {ema21WeeklyReapproachData.longs.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🔼 {isRTL ? 'برخورد صعودی هفتگی (EMA21)' : 'Weekly Bullish Reapproach (EMA21)'}</h4>
-                                    {ema21WeeklyReapproachData.longs.map((item, i) => renderReapproachItem(item, i))}
-                                </div>
-                            )}
-                            {ema21WeeklyReapproachData.shorts.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🔽 {isRTL ? 'برخورد نزولی هفتگی (EMA21)' : 'Weekly Bearish Reapproach (EMA21)'}</h4>
-                                    {ema21WeeklyReapproachData.shorts.map((item, i) => renderReapproachItem(item, i))}
-                                </div>
-                            )}
-                            {ema21WeeklyReapproachData.longs.length === 0 && ema21WeeklyReapproachData.shorts.length === 0 && (
-                                <p className="empty">{isRTL ? 'سیگنالی یافت نشد' : 'No weekly reapproach'}</p>
-                            )}
-                        </>
-                    )}
-                </div>
-            )}
-
-            {activeTab === '4h-reapproach' && (
-                <div className="signals-content">
-                    {reapproach4hLoading && <Loading isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0} />}
-                    {reapproach4hData && (
-                        <>
-                            {reapproach4hData.longs.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🔼 {isRTL ? 'برخورد صعودی 4ساعته' : '4h Bullish Reapproach'}</h4>
-                                    {reapproach4hData.longs.map((item, i) => renderReapproachItem(item, i))}
-                                </div>
-                            )}
-                            {reapproach4hData.shorts.length > 0 && (
-                                <div className="signals-section">
-                                    <h4>🔽 {isRTL ? 'برخورد نزولی 4ساعته' : '4h Bearish Reapproach'}</h4>
-                                    {reapproach4hData.shorts.map((item, i) => renderReapproachItem(item, i))}
-                                </div>
-                            )}
-                            {reapproach4hData.longs.length === 0 && reapproach4hData.shorts.length === 0 && (
-                                <p className="empty">{isRTL ? 'سیگنالی یافت نشد' : 'No 4h reapproach'}</p>
-                            )}
-                        </>
-                    )}
-                </div>
-            )}
-        </div>
-        {newsSymbol && (
-            <NewsPanel
-                symbol={newsSymbol}
-                isRTL={isRTL} progress={scanProgress?.current ?? 0} total={scanProgress?.total ?? 0}
-                onClose={() => setNewsSymbol(null)}
-            />
+      <LongShortTab
+        data={config.data}
+        isLoading={config.loading}
+        isRTL={isRTL}
+        scanProgress={scanProgress}
+        longTitle={config.longTitle}
+        shortTitle={config.shortTitle}
+        emptyText={config.emptyText}
+        renderItem={(item, index) => (
+          <SignalItem
+            item={item as SymbolSignal}
+            rank={index + 1}
+            isRTL={isRTL}
+            risk={undefined}
+            watchlisted={scanner.watchlistSymbols.has(item.symbol)}
+            onSelectSymbol={onSelectSymbol}
+            onOpenNews={handleOpenNews}
+            onOpenTradingView={handleOpenTradingView}
+            onToggleWatchlist={scanner.handleAddToWatchlist}
+          />
         )}
-        </>
+      />
     );
+  };
+
+  return (
+    <>
+      <SignalsHeader
+        isRTL={isRTL}
+        activeTab={scanner.activeTab}
+        useReliableSignals={scanner.useReliableSignals}
+        isLoading={scanner.isLoading}
+        onBack={onBack}
+        onRefresh={scanner.handleRefresh}
+        onDownload={scanner.handleDownload}
+        onToggleReliable={handleToggleReliable}
+      />
+      <SignalsTabs activeTab={scanner.activeTab} isRTL={isRTL} onTabChange={setActiveTab} />
+      {renderTabContent()}
+      {newsSymbol && (
+        <NewsPanel
+          symbol={newsSymbol}
+          isRTL={isRTL}
+          progress={scanProgress?.current}
+          total={scanProgress?.total}
+          onClose={() => setNewsSymbol(null)}
+        />
+      )}
+    </>
+  );
 }
