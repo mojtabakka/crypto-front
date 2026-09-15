@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import type { ExchangeName } from '../api/market/market';
-import type { FakeSignalScanResult, PullbackSignal, ReapproachSignal, ScannerTab, SymbolSignal } from '../types/market-scanner';
+import type { FakeSignalScanResult, FundingExtremeResult, LiquidationClustersResult, PullbackSignal, ReapproachSignal, ScannerTab, StrongSignalResult, TrustedLongShortResult, SymbolSignal, DojiCandlesResult } from '../types/market-scanner';
 
 function scannerUrl(path: string, exchange: ExchangeName, query = ''): string {
   const suffix = query ? `&${query}` : '';
@@ -27,6 +27,46 @@ async function fetchReliableLongs(exchange: ExchangeName): Promise<{ longs: Symb
     return { longs: [], shorts: [] };
   }
   return response.json();
+}
+
+async function fetchShortsCombined(exchange: ExchangeName): Promise<{ longs: SymbolSignal[]; shorts: SymbolSignal[] }> {
+    const response = await fetch(scannerUrl('shorts', exchange, 'timeframe=combined&limit=30'));
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        toast.error(err.message || 'Scanner request failed');
+        return { longs: [], shorts: [] };
+    }
+    return response.json();
+}
+
+async function fetchShorts4h(exchange: ExchangeName): Promise<{ longs: SymbolSignal[]; shorts: SymbolSignal[] }> {
+    const response = await fetch(scannerUrl('shorts', exchange, 'timeframe=4h&limit=30'));
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        toast.error(err.message || 'Scanner request failed');
+        return { longs: [], shorts: [] };
+    }
+    return response.json();
+}
+
+async function fetchShorts1h(exchange: ExchangeName): Promise<{ longs: SymbolSignal[]; shorts: SymbolSignal[] }> {
+    const response = await fetch(scannerUrl('shorts', exchange, 'timeframe=1h&limit=30'));
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        toast.error(err.message || 'Scanner request failed');
+        return { longs: [], shorts: [] };
+    }
+    return response.json();
+}
+
+async function fetchShortsDaily(exchange: ExchangeName): Promise<{ longs: SymbolSignal[]; shorts: SymbolSignal[] }> {
+    const response = await fetch(scannerUrl('shorts', exchange, 'timeframe=1d&limit=30'));
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        toast.error(err.message || 'Scanner request failed');
+        return { longs: [], shorts: [] };
+    }
+    return response.json();
 }
 
 async function fetchFakeSignals(exchange: ExchangeName): Promise<FakeSignalScanResult> {
@@ -161,6 +201,56 @@ async function fetchEma21Reapproach(exchange: ExchangeName, interval: '1d' | '4h
   return response.json();
 }
 
+async function fetchFundingExtreme(exchange: ExchangeName): Promise<FundingExtremeResult> {
+    const response = await fetch(scannerUrl('funding-extreme', exchange, 'limit=30'));
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      toast.error(err.message || 'Scanner request failed');
+      return { symbols: [], scanned: 0, duration: 0, timestamp: '' };
+    }
+    return response.json();
+  }
+
+async function fetchStrongSignals(exchange: ExchangeName): Promise<StrongSignalResult> {
+    const response = await fetch(scannerUrl('strong', exchange, 'limit=30'));
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      toast.error(err.message || 'Scanner request failed');
+      return { longs: [], shorts: [], scanned: 0, duration: 0, timestamp: '' };
+    }
+    return response.json();
+  }
+
+async function fetchTrustedLongShort(exchange: ExchangeName): Promise<TrustedLongShortResult> {
+    const response = await fetch(scannerUrl('trusted-long-short', exchange, 'limit=30'));
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      toast.error(err.message || 'Scanner request failed');
+      return { longs: [], shorts: [], scanned: 0, duration: 0, timestamp: '' };
+    }
+    return response.json();
+  }
+
+async function fetchDojiCandles(exchange: ExchangeName): Promise<DojiCandlesResult> {
+    const response = await fetch(scannerUrl('doji-candles', exchange, 'limit=30'));
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      toast.error(err.message || 'Scanner request failed');
+      return { candles: [], bullishCount: 0, bearishCount: 0, scanned: 0, duration: 0, timestamp: '' };
+    }
+    return response.json();
+  }
+
+async function fetchLiquidationClusters(exchange: ExchangeName): Promise<LiquidationClustersResult> {
+    const response = await fetch(scannerUrl('liquidation-clusters', exchange, 'limit=30'));
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      toast.error(err.message || 'Scanner request failed');
+      return { exchange: exchange, clusters: [], scanned: 0, duration: 0, timestamp: '' };
+    }
+    return response.json();
+  }
+
 async function addToWatchlist(symbol: string): Promise<void> {
   const response = await fetch('http://localhost:3000/watchlist', {
     method: 'POST',
@@ -224,12 +314,85 @@ export function useScannerData(options: UseScannerDataOptions) {
     staleTime: 60000,
   });
 
+  const [shortTimeframe, setShortTimeframe] = useState<'4h' | '1h' | '1d' | 'combined'>('combined');
+
   const { data: fakeSignalsData, isLoading: fakeSignalsLoading } = useQuery({
     queryKey: ['fake-signals', exchange],
     queryFn: () => fetchFakeSignals(exchange),
     enabled: activeTab === 'signals',
     staleTime: 120000,
   });
+
+  const { data: fundingExtremeData, isLoading: fundingExtremeLoading, refetch: refetchFundingExtreme } = useQuery({
+    queryKey: ['funding-extreme', exchange],
+    queryFn: () => fetchFundingExtreme(exchange),
+    enabled: activeTab === 'funding-extreme',
+    staleTime: 60000,
+  });
+
+  const { data: strongData, isLoading: strongLoading, refetch: refetchStrong } = useQuery({
+    queryKey: ['strong', exchange],
+    queryFn: () => fetchStrongSignals(exchange),
+    enabled: activeTab === 'strong',
+    staleTime: 60000,
+  });
+
+  const { data: trustedLongShortData, isLoading: trustedLongShortLoading, refetch: refetchTrustedLongShort } = useQuery({
+    queryKey: ['trusted-long-short', exchange],
+    queryFn: () => fetchTrustedLongShort(exchange),
+    enabled: activeTab === 'trusted-long-short',
+    staleTime: 60000,
+  });
+
+  const { data: dojiCandlesData, isLoading: dojiCandlesLoading, refetch: refetchDojiCandles } = useQuery({
+    queryKey: ['doji-candles', exchange],
+    queryFn: () => fetchDojiCandles(exchange),
+    enabled: activeTab === 'doji-candles',
+    staleTime: 60000,
+  });
+
+  const { data: liquidationClustersData, isLoading: liquidationClustersLoading, refetch: refetchLiquidationClusters } = useQuery({
+    queryKey: ['liquidation-clusters', exchange],
+    queryFn: () => fetchLiquidationClusters(exchange),
+    enabled: activeTab === 'liquidation-clusters',
+    staleTime: 60000,
+  });
+
+  const { data: shortsCombinedData, isLoading: shortsCombinedLoading, refetch: refetchShortsCombined } = useQuery({
+    queryKey: ['shorts-combined', exchange],
+    queryFn: () => fetchShortsCombined(exchange),
+    enabled: activeTab === 'signals',
+    staleTime: 60000,
+  });
+
+  const { data: shorts4hData, isLoading: shorts4hLoading, refetch: refetchShorts4h } = useQuery({
+    queryKey: ['shorts-4h', exchange],
+    queryFn: () => fetchShorts4h(exchange),
+    enabled: activeTab === 'signals',
+    staleTime: 60000,
+  });
+
+  const { data: shorts1hData, isLoading: shorts1hLoading, refetch: refetchShorts1h } = useQuery({
+    queryKey: ['shorts-1h', exchange],
+    queryFn: () => fetchShorts1h(exchange),
+    enabled: activeTab === 'signals',
+    staleTime: 60000,
+  });
+
+  const { data: shortsDailyData, isLoading: shortsDailyLoading, refetch: refetchShortsDaily } = useQuery({
+    queryKey: ['shorts-daily', exchange],
+    queryFn: () => fetchShortsDaily(exchange),
+    enabled: activeTab === 'signals',
+    staleTime: 60000,
+  });
+
+  const handleShortTimeframeChange = (tf: '4h' | '1h' | '1d' | 'combined') => {
+    setShortTimeframe(tf);
+    if (tf === 'combined') refetchShortsCombined();
+    if (tf === '4h') refetchShorts4h();
+    if (tf === '1h') refetchShorts1h();
+    if (tf === '1d') refetchShortsDaily();
+  };
 
   const { data: pullbacksData, isLoading: pullbacksLoading, refetch: refetchPullbacks } = useQuery({
     queryKey: ['pullbacks', exchange],
@@ -350,7 +513,7 @@ export function useScannerData(options: UseScannerDataOptions) {
     staleTime: 600000,
   });
 
-  const isLoading = signalsLoading || reliableSignalsLoading || pullbacksLoading || reapproachLoading || weeklyPullbacksLoading || weeklyReapproachLoading || weeklyAboveEma50Loading || dailyAboveEma50LongLoading || weeklyAboveEma50LongLoading || pullbacks4hLoading || monthlyPullbacksLoading || monthlyReapproachLoading || reapproach4hLoading || ema21DailyPullbackLoading || ema21DailyReapproachLoading || ema214hPullbackLoading || ema214hReapproachLoading || ema21WeeklyPullbackLoading || ema21WeeklyReapproachLoading;
+  const     isLoading = signalsLoading || reliableSignalsLoading || pullbacksLoading || reapproachLoading || weeklyPullbacksLoading || weeklyReapproachLoading || weeklyAboveEma50Loading || dailyAboveEma50LongLoading || weeklyAboveEma50LongLoading || pullbacks4hLoading || monthlyPullbacksLoading || monthlyReapproachLoading || reapproach4hLoading || ema21DailyPullbackLoading || ema21DailyReapproachLoading || ema214hPullbackLoading || ema214hReapproachLoading || ema21WeeklyPullbackLoading || ema21WeeklyReapproachLoading || liquidationClustersLoading || trustedLongShortLoading || dojiCandlesLoading;
 
   const handleRefresh = () => {
     if (activeTab === 'signals') {
@@ -391,6 +554,16 @@ export function useScannerData(options: UseScannerDataOptions) {
       refetchEma21WeeklyPullback();
     } else if (activeTab === 'ema21-weekly-reapproach') {
       refetchEma21WeeklyReapproach();
+    } else if (activeTab === 'funding-extreme') {
+      refetchFundingExtreme();
+    } else if (activeTab === 'strong') {
+      refetchStrong();
+    } else if (activeTab === 'doji-candles') {
+      refetchDojiCandles();
+    } else if (activeTab === 'trusted-long-short') {
+      refetchTrustedLongShort();
+    } else if (activeTab === 'liquidation-clusters') {
+      refetchLiquidationClusters();
     } else {
       refetchWeeklyAboveEma50Long();
     }
@@ -485,5 +658,32 @@ export function useScannerData(options: UseScannerDataOptions) {
     refetchEma214hReapproach,
     refetchEma21WeeklyPullback,
     refetchEma21WeeklyReapproach,
+    refetchFundingExtreme,
+    refetchStrong,
+    refetchTrustedLongShort,
+    refetchDojiCandles,
+    refetchLiquidationClusters,
+    fundingExtremeData,
+    fundingExtremeLoading,
+    strongData,
+    strongLoading,
+    trustedLongShortData,
+    trustedLongShortLoading,
+    dojiCandlesData,
+    dojiCandlesLoading,
+    liquidationClustersData,
+    liquidationClustersLoading,
+    shortTimeframe,
+    setShortTimeframe,
+    handleShortTimeframeChange,
+    shortsCombinedData,
+    shorts4hData,
+    shorts1hData,
+    shortsDailyData,
+    shortsCombinedLoading,
+    shorts4hLoading,
+    shorts1hLoading,
+    shortsDailyLoading,
+    dojiCandlesLoading,
   };
 }

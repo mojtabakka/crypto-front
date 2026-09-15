@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Loading } from './Loading';
-import { SignalItem } from './SignalItem';
+import { SignalRow } from './SignalRow';
 import type { FakeSignalScanResult, SymbolSignal } from '../types/market-scanner';
 
 interface SignalsTabProps {
@@ -48,19 +48,19 @@ export function SignalsTab({
 
   const getFakeSignalRisk = (symbol: string) => fakeRiskMap.get(symbol);
 
-  const renderSignalItem = (item: SymbolSignal, index: number) => (
-    <SignalItem
-      item={item}
-      rank={index + 1}
-      isRTL={isRTL}
-      risk={getFakeSignalRisk(item.symbol)}
-      watchlisted={watchlistSymbols.has(item.symbol)}
-      onSelectSymbol={onSelectSymbol}
-      onOpenNews={onOpenNews}
-      onOpenTradingView={onOpenTradingView}
-      onToggleWatchlist={onToggleWatchlist}
-    />
-  );
+    const renderSignalItem = (item: SymbolSignal, index: number) => (
+      <SignalRow
+        item={item}
+        rank={index + 1}
+        isRTL={isRTL}
+        risk={getFakeSignalRisk(item.symbol)}
+        watchlisted={watchlistSymbols.has(item.symbol)}
+        onSelectSymbol={onSelectSymbol}
+        onOpenNews={onOpenNews}
+        onOpenTradingView={onOpenTradingView}
+        onToggleWatchlist={onToggleWatchlist}
+      />
+    );
 
   return (
     <>

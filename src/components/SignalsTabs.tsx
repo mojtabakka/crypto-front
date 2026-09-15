@@ -1,8 +1,10 @@
 import {
   AboveEmaIcon,
   Ema21Icon,
+  FundingExtremeIcon,
   LongEmaIcon,
   LongWeeklyIcon,
+  LiquidationClusterIcon,
   Pullback4hIcon,
   PullbackIcon,
   PullbackMonthlyIcon,
@@ -11,7 +13,10 @@ import {
   ReapproachIcon,
   ReapproachMonthlyIcon,
   ReapproachWeeklyIcon,
+  StrongIcon,
   TrendingIcon,
+  DojiIcon,
+  TrustIcon,
 } from './MarketScannerIcons';
 import type { ScannerTab } from '../types/market-scanner';
 
@@ -41,6 +46,11 @@ const TABS: TabConfig[] = [
   { id: 'weekly-above-ema50', label: { fa: 'بالای EMA', en: 'Above EMA' }, subtitle: { fa: 'هفتگی', en: 'Weekly' }, Icon: AboveEmaIcon },
   { id: 'daily-above-ema50-long', label: { fa: 'لانگ + EMA', en: 'Long + EMA' }, subtitle: { fa: 'روزانه', en: 'Daily' }, Icon: LongEmaIcon },
   { id: 'weekly-above-ema50-long', label: { fa: 'لانگ + هفتگی', en: 'Long + Weekly' }, subtitle: { fa: 'EMA50', en: 'EMA50' }, Icon: LongWeeklyIcon },
+  { id: 'funding-extreme', label: { fa: 'Funding Extreme', en: 'Funding Extreme' }, Icon: FundingExtremeIcon },
+  { id: 'strong', label: { fa: 'لانگ/شورت قوی', en: 'Strong L/S' }, Icon: StrongIcon },
+  { id: 'liquidation-clusters', label: { fa: 'خامه‌های نقدشدنی', en: 'Liquidation Clusters' }, Icon: LiquidationClusterIcon },
+  { id: 'trusted-long-short', label: { fa: 'لانگ/شورت معتبر', en: 'Trusted L/S' }, Icon: TrustIcon },
+  { id: 'doji-candles', label: { fa: 'دوجی‌ها', en: 'Doji Candles' }, Icon: DojiIcon },
 ];
 
 interface SignalsTabsProps {

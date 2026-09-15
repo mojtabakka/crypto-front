@@ -106,3 +106,45 @@ export const LongWeeklyIcon = ({ className }: IconProps) => (
     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
   </svg>
 );
+
+export const FundingExtremeIcon = ({ className }: IconProps) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 2v20"/>
+    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+  </svg>
+);
+
+export const StrongIcon = ({ className }: IconProps) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 4v16"/>
+    <path d="M18 4v16"/>
+    <path d="M6 12h12"/>
+  </svg>
+);
+
+export const TrustIcon = ({ className }: IconProps) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 2l8 4v6c0 5-3.5 9.5-8 10-4.5-.5-8-5-8-10V6l8-4z"/>
+    <path d="M9 12l2 2 4-4"/>
+  </svg>
+);
+
+export const DojiIcon = ({ className }: IconProps) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="2" fill="currentColor" opacity="0.3"/>
+    <line x1="2" y1="12" x2="8" y2="12"/>
+    <line x1="16" y1="12" x2="22" y2="12"/>
+    <line x1="12" y1="3" x2="12" y2="8"/>
+    <line x1="12" y1="16" x2="12" y2="21"/>
+  </svg>
+);
+
+export const LiquidationClusterIcon = ({ className }: IconProps) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 21V8l6-3 6 3 6-3v13"/>
+    <path d="M9 18V12l4-2 4 2v6"/>
+    <circle cx="9" cy="13" r="1"/>
+    <circle cx="13" cy="11" r="1"/>
+    <circle cx="17" cy="13" r="1"/>
+  </svg>
+);

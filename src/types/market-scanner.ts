@@ -16,7 +16,10 @@ export type ScannerTab =
   | 'ema21-4h-pullback'
   | 'ema21-4h-reapproach'
   | 'ema21-weekly-pullback'
-  | 'ema21-weekly-reapproach';
+  | 'ema21-weekly-reapproach'
+  | 'funding-extreme'
+  | 'strong'
+  | 'liquidation-clusters';
 
 export interface SymbolSignal {
   symbol: string;
@@ -80,4 +83,95 @@ export interface AboveEmaSignal {
   symbol: string;
   priceVsEma50: number | null;
   priceChange: number;
+}
+
+export interface FundingExtremeSymbol {
+  symbol: string;
+  fundingRate: number;
+  priceChange: number;
+  signal: string;
+  direction: 'LONG_SQUEEZE' | 'SHORT_SQUEEZE' | 'NEUTRAL';
+  target1: number;
+  target2: number;
+  target3: number;
+}
+
+export interface FundingExtremeResult {
+  symbols: FundingExtremeSymbol[];
+  scanned: number;
+  duration: number;
+  timestamp: string;
+}
+
+export interface StrongSignalResult {
+  longs: SymbolSignal[];
+  shorts: SymbolSignal[];
+  scanned: number;
+  duration: number;
+  timestamp: string;
+}
+
+export interface TrustedSignal extends SymbolSignal {
+  trustScore: number;
+  verified: boolean;
+  trustBadges: string[];
+}
+
+export interface TrustedLongShortResult {
+  longs: TrustedSignal[];
+  shorts: TrustedSignal[];
+  scanned: number;
+  duration: number;
+  timestamp: string;
+}
+
+export interface DojiCandle {
+  symbol: string;
+  dojiType: 'BULLISH' | 'BEARISH';
+  openTime: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+  bodySize: number;
+  range: number;
+  bodyRatio: number;
+}
+
+export interface DojiCandlesResult {
+  candles: DojiCandle[];
+  bullishCount: number;
+  bearishCount: number;
+  scanned: number;
+  duration: number;
+  timestamp: string;
+}
+
+export interface LiquidationCluster {
+  symbol: string;
+  side: 'LONG' | 'SHORT';
+  priceCluster: number;
+  priceRange: { min: number; max: number };
+  totalValue: number;
+  totalQuantity: number;
+  liquidationCount: number;
+  liquidations: LiquidationDto[];
+}
+
+export interface LiquidationDto {
+  time: number;
+  symbol: string;
+  side: 'LONG' | 'SHORT';
+  quantity: number;
+  price: number;
+  value: number;
+}
+
+export interface LiquidationClustersResult {
+  exchange: string;
+  clusters: LiquidationCluster[];
+  scanned: number;
+  duration: number;
+  timestamp: string;
 }

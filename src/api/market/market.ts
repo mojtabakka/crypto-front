@@ -280,14 +280,53 @@ export async function fetchFuturesSymbols(exchange?: ExchangeName): Promise<Futu
 }
 
 export async function getStoredFuturesSymbols(exchange?: ExchangeName): Promise<FuturesSymbolsResponse | { message: string }> {
-    const selectedExchange = exchange ?? getCurrentExchange();
-    const response = await fetch(
-        `http://localhost:3000/futures-symbols?exchange=${selectedExchange}`,
-    );
+  const selectedExchange = exchange ?? getCurrentExchange();
+  const response = await fetch(
+    `http://localhost:3000/futures-symbols?exchange=${selectedExchange}`,
+  );
 
-    if (!response.ok) {
-        throw new Error('Failed to get stored futures symbols');
-    }
+  if (!response.ok) {
+    throw new Error('Failed to get stored futures symbols');
+  }
 
-    return response.json();
+  return response.json();
+}
+
+export async function getLiquidationClusters(exchange: ExchangeName, limit: number = 30): Promise<LiquidationClustersResult> {
+  const selectedExchange = exchange ?? getCurrentExchange();
+  const response = await fetch(
+    `http://localhost:3000/market-scanner/liquidation-clusters?exchange=${selectedExchange}&limit=${limit}`,
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch liquidation clusters');
+  }
+
+  return response.json();
+}
+
+export async function getTrustedLongShort(exchange: ExchangeName, limit: number = 30): Promise<TrustedLongShortResult> {
+  const selectedExchange = exchange ?? getCurrentExchange();
+  const response = await fetch(
+    `http://localhost:3000/market-scanner/trusted-long-short?exchange=${selectedExchange}&limit=${limit}`,
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch trusted long/short signals');
+  }
+
+  return response.json();
+}
+
+export async function getDojiCandles(exchange: ExchangeName, limit: number = 30): Promise<DojiCandlesResult> {
+  const selectedExchange = exchange ?? getCurrentExchange();
+  const response = await fetch(
+    `http://localhost:3000/market-scanner/doji-candles?exchange=${selectedExchange}&limit=${limit}`,
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch doji candles');
+  }
+
+  return response.json();
 }
