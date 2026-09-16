@@ -149,6 +149,16 @@ export const SqueezeIcon = ({ className }: IconProps) => (
   </svg>
 );
 
+export const BitcoinIcon = ({ className }: IconProps) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <path d="M9.5 9.5h5.5a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2h-3"/>
+    <path d="M9.5 12.5h5.5a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2h-3"/>
+    <line x1="10" y1="7" x2="10" y2="17"/>
+    <line x1="14" y1="7" x2="14" y2="17"/>
+  </svg>
+);
+
 export const LiquidationClusterIcon = ({ className }: IconProps) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M3 21V8l6-3 6 3 6-3v13"/>

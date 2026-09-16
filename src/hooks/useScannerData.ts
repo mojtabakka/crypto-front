@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import type { ExchangeName } from '../api/market/market';
-import type { FakeSignalScanResult, FundingExtremeResult, FundingVolumeSqueezeResult, LiquidationClustersResult, PullbackSignal, ReapproachSignal, ScannerTab, StrongSignalResult, TrustedLongShortResult, SymbolSignal, DojiCandlesResult } from '../types/market-scanner';
+import type { FakeSignalScanResult, FundingExtremeResult, FundingVolumeSqueezeResult, LiquidationClustersResult, PullbackSignal, ReapproachSignal, ScannerTab, StrongSignalResult, TrustedLongShortResult, SymbolSignal, DojiCandlesResult, BTCCandleResult } from '../types/market-scanner';
 
 function scannerUrl(path: string, exchange: ExchangeName, query = ''): string {
   const suffix = query ? `&${query}` : '';
@@ -251,6 +251,16 @@ async function fetchFundingVolumeSqueeze(exchange: ExchangeName): Promise<Fundin
     return response.json();
   }
 
+async function fetchBTCCandles(): Promise<BTCCandleResult> {
+    const response = await fetch(scannerUrl('btc-candle-sequence', 'BINANCE', 'limit=1000'));
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      toast.error(err.message || 'Scanner request failed');
+      return { values: [], raw: [] };
+    }
+    return response.json();
+  }
+
 async function fetchLiquidationClusters(exchange: ExchangeName): Promise<LiquidationClustersResult> {
     const response = await fetch(scannerUrl('liquidation-clusters', exchange, 'limit=30'));
     if (!response.ok) {
@@ -365,6 +375,13 @@ export function useScannerData(options: UseScannerDataOptions) {
     queryKey: ['funding-volume-squeeze', exchange],
     queryFn: () => fetchFundingVolumeSqueeze(exchange),
     enabled: activeTab === 'funding-volume-squeeze',
+    staleTime: 60000,
+  });
+
+  const { data: btcCandlesData, isLoading: btcCandlesLoading, refetch: refetchBTCCandles } = useQuery({
+    queryKey: ['btc-candles'],
+    queryFn: () => fetchBTCCandles(),
+    enabled: activeTab === 'btc-candles',
     staleTime: 60000,
   });
 
@@ -530,7 +547,7 @@ export function useScannerData(options: UseScannerDataOptions) {
     staleTime: 600000,
   });
 
-  const     isLoading = signalsLoading || reliableSignalsLoading || pullbacksLoading || reapproachLoading || weeklyPullbacksLoading || weeklyReapproachLoading || weeklyAboveEma50Loading || dailyAboveEma50LongLoading || weeklyAboveEma50LongLoading || pullbacks4hLoading || monthlyPullbacksLoading || monthlyReapproachLoading || reapproach4hLoading || ema21DailyPullbackLoading || ema21DailyReapproachLoading || ema214hPullbackLoading || ema214hReapproachLoading || ema21WeeklyPullbackLoading || ema21WeeklyReapproachLoading || liquidationClustersLoading || trustedLongShortLoading || dojiCandlesLoading || fundingVolumeSqueezeLoading;
+  const     isLoading = signalsLoading || reliableSignalsLoading || pullbacksLoading || reapproachLoading || weeklyPullbacksLoading || weeklyReapproachLoading || weeklyAboveEma50Loading || dailyAboveEma50LongLoading || weeklyAboveEma50LongLoading || pullbacks4hLoading || monthlyPullbacksLoading || monthlyReapproachLoading || reapproach4hLoading || ema21DailyPullbackLoading || ema21DailyReapproachLoading || ema214hPullbackLoading || ema214hReapproachLoading || ema21WeeklyPullbackLoading || ema21WeeklyReapproachLoading || liquidationClustersLoading || trustedLongShortLoading || dojiCandlesLoading || fundingVolumeSqueezeLoading || btcCandlesLoading;
 
   const handleRefresh = () => {
     if (activeTab === 'signals') {
@@ -575,6 +592,8 @@ export function useScannerData(options: UseScannerDataOptions) {
       refetchFundingExtreme();
     } else if (activeTab === 'strong') {
       refetchStrong();
+    } else if (activeTab === 'btc-candles') {
+      refetchBTCCandles();
     } else if (activeTab === 'funding-volume-squeeze') {
       refetchFundingVolumeSqueeze();
     } else if (activeTab === 'doji-candles') {
@@ -682,6 +701,7 @@ export function useScannerData(options: UseScannerDataOptions) {
     refetchTrustedLongShort,
     refetchDojiCandles,
     refetchFundingVolumeSqueeze,
+    refetchBTCCandles,
     refetchLiquidationClusters,
     fundingExtremeData,
     fundingExtremeLoading,
@@ -693,6 +713,8 @@ export function useScannerData(options: UseScannerDataOptions) {
     dojiCandlesLoading,
     fundingVolumeSqueezeData,
     fundingVolumeSqueezeLoading,
+    btcCandlesData,
+    btcCandlesLoading,
     liquidationClustersData,
     liquidationClustersLoading,
     shortTimeframe,
@@ -706,6 +728,6 @@ export function useScannerData(options: UseScannerDataOptions) {
     shorts4hLoading,
     shorts1hLoading,
     shortsDailyLoading,
-    dojiCandlesLoading,
+    btcCandlesLoading,
   };
 }

@@ -521,6 +521,29 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
     );
   }
 
+  if (tab === 'btc-candles') {
+    return (
+      <div>
+        <div className="signals-section">
+          <h4>₿ {isRTL ? 'بیتکوین - دنباله کندل' : 'BTC Candle Sequence'}</h4>
+          {scanner.btcCandlesLoading && <Loading isRTL={isRTL} />}
+          {!scanner.btcCandlesLoading && scanner.btcCandlesData && scanner.btcCandlesData.values.length > 0 && (
+            <div className="btc-candle-sequence">
+              {scanner.btcCandlesData.values.map((val, i) => (
+                <span key={i} className={`candle-value ${val.startsWith('-') ? 'neg' : 'pos'}`}>
+                  {val}
+                </span>
+              ))}
+            </div>
+          )}
+          {!scanner.btcCandlesLoading && (!scanner.btcCandlesData?.values || scanner.btcCandlesData.values.length === 0) && (
+            <p className="empty">{isRTL ? 'داده‌ای یافت نشد' : 'No data found'}</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   const configs: { [K in ScannerTab]?: { data: { longs: ScannerItem[]; shorts: ScannerItem[] } | undefined; loading: boolean; longTitle: string; shortTitle: string; emptyText: string } } = {
       pullbacks: { data: scanner.pullbacksData as unknown as { longs: ScannerItem[]; shorts: ScannerItem[] }, loading: scanner.pullbacksLoading, longTitle: isRTL ? 'پولبک صعودی (حمایت)' : 'Bullish Pullback (Support)', shortTitle: isRTL ? 'پولبک نزولی (مقاومت)' : 'Bearish Pullback (Resistance)', emptyText: isRTL ? 'پولبکی یافت نشد' : 'No pullbacks found' },
       reapproach: { data: scanner.reapproachData as unknown as { longs: ScannerItem[]; shorts: ScannerItem[] }, loading: scanner.reapproachLoading, longTitle: isRTL ? 'برخورد صعودی' : 'Bullish Reapproach', shortTitle: isRTL ? 'برخورد نزولی' : 'Bearish Reapproach', emptyText: isRTL ? 'سیگنالی یافت نشد' : 'No reapproach signals' },

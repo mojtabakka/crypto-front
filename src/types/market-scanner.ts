@@ -165,6 +165,17 @@ export interface FundingVolumeSqueezeResult {
   timestamp: string;
 }
 
+export interface BTCCandle {
+  date: string;
+  close: number;
+  value: number;
+}
+
+export interface BTCCandleResult {
+  values: string[];
+  raw: BTCCandle[];
+}
+
 export interface LiquidationCluster {
   symbol: string;
   side: 'LONG' | 'SHORT';
