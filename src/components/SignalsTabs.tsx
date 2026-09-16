@@ -16,6 +16,7 @@ import {
   StrongIcon,
   TrendingIcon,
   DojiIcon,
+  SqueezeIcon,
   TrustIcon,
 } from './MarketScannerIcons';
 import type { ScannerTab } from '../types/market-scanner';
@@ -51,6 +52,7 @@ const TABS: TabConfig[] = [
   { id: 'liquidation-clusters', label: { fa: 'خامه‌های نقدشدنی', en: 'Liquidation Clusters' }, Icon: LiquidationClusterIcon },
   { id: 'trusted-long-short', label: { fa: 'لانگ/شورت معتبر', en: 'Trusted L/S' }, Icon: TrustIcon },
   { id: 'doji-candles', label: { fa: 'دوجی‌ها', en: 'Doji Candles' }, Icon: DojiIcon },
+  { id: 'funding-volume-squeeze', label: { fa: 'فشار فاندینگ', en: 'Funding Squeeze' }, Icon: SqueezeIcon },
 ];
 
 interface SignalsTabsProps {

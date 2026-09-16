@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import type { ExchangeName } from '../api/market/market';
-import type { FakeSignalScanResult, FundingExtremeResult, LiquidationClustersResult, PullbackSignal, ReapproachSignal, ScannerTab, StrongSignalResult, TrustedLongShortResult, SymbolSignal, DojiCandlesResult } from '../types/market-scanner';
+import type { FakeSignalScanResult, FundingExtremeResult, FundingVolumeSqueezeResult, LiquidationClustersResult, PullbackSignal, ReapproachSignal, ScannerTab, StrongSignalResult, TrustedLongShortResult, SymbolSignal, DojiCandlesResult } from '../types/market-scanner';
 
 function scannerUrl(path: string, exchange: ExchangeName, query = ''): string {
   const suffix = query ? `&${query}` : '';
@@ -241,6 +241,16 @@ async function fetchDojiCandles(exchange: ExchangeName): Promise<DojiCandlesResu
     return response.json();
   }
 
+async function fetchFundingVolumeSqueeze(exchange: ExchangeName): Promise<FundingVolumeSqueezeResult> {
+    const response = await fetch(scannerUrl('funding-volume-squeeze', exchange, 'limit=30'));
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      toast.error(err.message || 'Scanner request failed');
+      return { symbols: [], scanned: 0, duration: 0, timestamp: '' };
+    }
+    return response.json();
+  }
+
 async function fetchLiquidationClusters(exchange: ExchangeName): Promise<LiquidationClustersResult> {
     const response = await fetch(scannerUrl('liquidation-clusters', exchange, 'limit=30'));
     if (!response.ok) {
@@ -348,6 +358,13 @@ export function useScannerData(options: UseScannerDataOptions) {
     queryKey: ['doji-candles', exchange],
     queryFn: () => fetchDojiCandles(exchange),
     enabled: activeTab === 'doji-candles',
+    staleTime: 60000,
+  });
+
+  const { data: fundingVolumeSqueezeData, isLoading: fundingVolumeSqueezeLoading, refetch: refetchFundingVolumeSqueeze } = useQuery({
+    queryKey: ['funding-volume-squeeze', exchange],
+    queryFn: () => fetchFundingVolumeSqueeze(exchange),
+    enabled: activeTab === 'funding-volume-squeeze',
     staleTime: 60000,
   });
 
@@ -513,7 +530,7 @@ export function useScannerData(options: UseScannerDataOptions) {
     staleTime: 600000,
   });
 
-  const     isLoading = signalsLoading || reliableSignalsLoading || pullbacksLoading || reapproachLoading || weeklyPullbacksLoading || weeklyReapproachLoading || weeklyAboveEma50Loading || dailyAboveEma50LongLoading || weeklyAboveEma50LongLoading || pullbacks4hLoading || monthlyPullbacksLoading || monthlyReapproachLoading || reapproach4hLoading || ema21DailyPullbackLoading || ema21DailyReapproachLoading || ema214hPullbackLoading || ema214hReapproachLoading || ema21WeeklyPullbackLoading || ema21WeeklyReapproachLoading || liquidationClustersLoading || trustedLongShortLoading || dojiCandlesLoading;
+  const     isLoading = signalsLoading || reliableSignalsLoading || pullbacksLoading || reapproachLoading || weeklyPullbacksLoading || weeklyReapproachLoading || weeklyAboveEma50Loading || dailyAboveEma50LongLoading || weeklyAboveEma50LongLoading || pullbacks4hLoading || monthlyPullbacksLoading || monthlyReapproachLoading || reapproach4hLoading || ema21DailyPullbackLoading || ema21DailyReapproachLoading || ema214hPullbackLoading || ema214hReapproachLoading || ema21WeeklyPullbackLoading || ema21WeeklyReapproachLoading || liquidationClustersLoading || trustedLongShortLoading || dojiCandlesLoading || fundingVolumeSqueezeLoading;
 
   const handleRefresh = () => {
     if (activeTab === 'signals') {
@@ -558,6 +575,8 @@ export function useScannerData(options: UseScannerDataOptions) {
       refetchFundingExtreme();
     } else if (activeTab === 'strong') {
       refetchStrong();
+    } else if (activeTab === 'funding-volume-squeeze') {
+      refetchFundingVolumeSqueeze();
     } else if (activeTab === 'doji-candles') {
       refetchDojiCandles();
     } else if (activeTab === 'trusted-long-short') {
@@ -662,6 +681,7 @@ export function useScannerData(options: UseScannerDataOptions) {
     refetchStrong,
     refetchTrustedLongShort,
     refetchDojiCandles,
+    refetchFundingVolumeSqueeze,
     refetchLiquidationClusters,
     fundingExtremeData,
     fundingExtremeLoading,
@@ -671,6 +691,8 @@ export function useScannerData(options: UseScannerDataOptions) {
     trustedLongShortLoading,
     dojiCandlesData,
     dojiCandlesLoading,
+    fundingVolumeSqueezeData,
+    fundingVolumeSqueezeLoading,
     liquidationClustersData,
     liquidationClustersLoading,
     shortTimeframe,

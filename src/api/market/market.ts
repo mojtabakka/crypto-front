@@ -23,6 +23,8 @@ export function getCurrentExchange(): ExchangeName {
     return isExchangeName(saved) ? saved : 'BINANCE';
 }
 
+import type { DojiCandlesResult, FundingVolumeSqueezeResult } from '../types/market-scanner';
+
 export interface MarketCandle {
     time: number;
     open: number;
@@ -326,6 +328,19 @@ export async function getDojiCandles(exchange: ExchangeName, limit: number = 30)
 
   if (!response.ok) {
     throw new Error('Failed to fetch doji candles');
+  }
+
+  return response.json();
+}
+
+export async function getFundingVolumeSqueeze(exchange: ExchangeName, limit: number = 30): Promise<FundingVolumeSqueezeResult> {
+  const selectedExchange = exchange ?? getCurrentExchange();
+  const response = await fetch(
+    `http://localhost:3000/market-scanner/funding-volume-squeeze?exchange=${selectedExchange}&limit=${limit}`,
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch funding squeeze');
   }
 
   return response.json();

@@ -148,6 +148,23 @@ export interface DojiCandlesResult {
   timestamp: string;
 }
 
+export interface FundingVolumeSqueeze {
+  symbol: string;
+  fundingRate: number;
+  fundingChange: number;
+  volumeRatio: number;
+  priceChange: number;
+  isBullish: boolean;
+  trustScore: number;
+}
+
+export interface FundingVolumeSqueezeResult {
+  symbols: FundingVolumeSqueeze[];
+  scanned: number;
+  duration: number;
+  timestamp: string;
+}
+
 export interface LiquidationCluster {
   symbol: string;
   side: 'LONG' | 'SHORT';

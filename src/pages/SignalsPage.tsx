@@ -480,6 +480,47 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
     );
   }
 
+  if (tab === 'funding-volume-squeeze') {
+    return (
+      <div>
+        <div className="signals-section">
+          <h4>🔥 {isRTL ? 'فشار فاندینگ + حجم' : 'Funding Volume Squeeze'}</h4>
+          {scanner.fundingVolumeSqueezeLoading && <Loading isRTL={isRTL} />}
+          {!scanner.fundingVolumeSqueezeLoading && scanner.fundingVolumeSqueezeData && scanner.fundingVolumeSqueezeData.symbols.length > 0 && (
+            <>
+              <div className="trust-summary">
+                <span>{isRTL ? 'تعداد سیگنال‌ها:' : 'Signals:'} {scanner.fundingVolumeSqueezeData.symbols.length}</span>
+                <span>{isRTL ? 'بررسی شده:' : 'Scanned:'} {scanner.fundingVolumeSqueezeData.scanned}</span>
+              </div>
+              {scanner.fundingVolumeSqueezeData.symbols.map((item, i) => (
+                <div key={item.symbol} className={`signal-item ${item.isBullish ? 'long' : 'short'} verified`} onClick={() => onSelectSymbol(item.symbol)}>
+                  <div className="signal-rank">{i + 1}</div>
+                  <div className="signal-info">
+                    <span className="signal-symbol">{item.symbol}</span>
+                    <span className={`signal-badge ${item.isBullish ? 'long' : 'short'}`}>
+                      {item.isBullish ? '🟢 LONG' : '🔴 SHORT'}
+                    </span>
+                    <span className="trust-badge funding">🔥</span>
+                  </div>
+                  <div className="signal-stats">
+                    <span className="signal-stat pos">🛡️ {item.trustScore}</span>
+                    <span className="signal-stat">Fund: {(item.fundingRate * 100).toFixed(4)}%</span>
+                    <span className="signal-stat pos">Fund↑: {item.fundingChange.toFixed(1)}%</span>
+                    <span className="signal-stat pos">Vol: {item.volumeRatio.toFixed(2)}x</span>
+                    <span className="signal-stat">Range: {item.priceChange.toFixed(2)}%</span>
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+          {!scanner.fundingVolumeSqueezeLoading && (!scanner.fundingVolumeSqueezeData?.symbols || scanner.fundingVolumeSqueezeData.symbols.length === 0) && (
+            <p className="empty">{isRTL ? 'سیگنال فشار فاندینگ یافت نشد' : 'No squeeze signals'}</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   const configs: { [K in ScannerTab]?: { data: { longs: ScannerItem[]; shorts: ScannerItem[] } | undefined; loading: boolean; longTitle: string; shortTitle: string; emptyText: string } } = {
       pullbacks: { data: scanner.pullbacksData as unknown as { longs: ScannerItem[]; shorts: ScannerItem[] }, loading: scanner.pullbacksLoading, longTitle: isRTL ? 'پولبک صعودی (حمایت)' : 'Bullish Pullback (Support)', shortTitle: isRTL ? 'پولبک نزولی (مقاومت)' : 'Bearish Pullback (Resistance)', emptyText: isRTL ? 'پولبکی یافت نشد' : 'No pullbacks found' },
       reapproach: { data: scanner.reapproachData as unknown as { longs: ScannerItem[]; shorts: ScannerItem[] }, loading: scanner.reapproachLoading, longTitle: isRTL ? 'برخورد صعودی' : 'Bullish Reapproach', shortTitle: isRTL ? 'برخورد نزولی' : 'Bearish Reapproach', emptyText: isRTL ? 'سیگنالی یافت نشد' : 'No reapproach signals' },

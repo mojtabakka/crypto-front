@@ -139,6 +139,16 @@ export const DojiIcon = ({ className }: IconProps) => (
   </svg>
 );
 
+export const SqueezeIcon = ({ className }: IconProps) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 8h16"/>
+    <path d="M4 16h16"/>
+    <path d="M8 4l-4 8 4 8"/>
+    <path d="M16 4l4 8-4 8"/>
+    <circle cx="12" cy="12" r="2" fill="currentColor" opacity="0.3"/>
+  </svg>
+);
+
 export const LiquidationClusterIcon = ({ className }: IconProps) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M3 21V8l6-3 6 3 6-3v13"/>
