@@ -7,6 +7,10 @@ import { useEvents } from './hooks/useEvents';
 import { HomePage } from './pages/HomePage';
 import { SignalsPage } from './pages/SignalsPage';
 import { WatchlistPage } from './pages/WatchlistPage';
+import { LoginPage } from './pages/LoginPage';
+import { AlertsPage } from './pages/AlertsPage';
+import { SentimentPage } from './pages/SentimentPage';
+import { AdminUsersPage } from './pages/AdminUsersPage';
 import { MarketSummary } from './components/MarketSummary';
 import { VolumeChart } from './components/VolumeChart';
 import { OpenInterestChart } from './components/OpenInterestChart';
@@ -18,13 +22,18 @@ import { FuturesSymbolsButton } from './components/FuturesSymbolsButton';
 import { Loading } from './components/Loading';
 import { Button } from './components/Button';
 import { useI18n } from './i18n';
+import { useAuth } from './contexts/AuthContext';
 import './App.css';
 import './components/MarketControls.css';
 import './components/NewsList.css';
 import './pages/SignalsPage.css';
 import './pages/WatchlistPage.css';
+import './pages/AuthPages.css';
+import './pages/AlertsPage.css';
+import './pages/SentimentPage.css';
+import './pages/AdminUsersPage.css';
 
-type Page = 'home' | 'detail' | 'signals' | 'watchlist';
+type Page = 'home' | 'detail' | 'signals' | 'watchlist' | 'alerts' | 'sentiment' | 'admin-users';
 type TabId = 'charts' | 'signals' | 'news' | 'events' | 'tradingview-news' | 'important-news';
 
 interface TradingViewNewsItem {
@@ -39,6 +48,7 @@ interface TradingViewNewsItem {
 }
 
 function TradingViewNews({ symbol, isRTL }: { symbol: string; isRTL: boolean }) {
+    const { t } = useI18n();
     const { data: newsData, isLoading, isError } = useQuery({
         queryKey: ['tradingview-news', symbol, isRTL ? 'fa' : 'en'],
         queryFn: async () => {
@@ -58,7 +68,7 @@ function TradingViewNews({ symbol, isRTL }: { symbol: string; isRTL: boolean }) 
         return (
             <div className="error-state">
                 <span>⚠️</span>
-                <span>{isRTL ? 'خطا در بارگذاری اخبار' : 'Failed to load news'}</span>
+                <span>{t.error.generic}</span>
             </div>
         );
     }
@@ -68,7 +78,7 @@ function TradingViewNews({ symbol, isRTL }: { symbol: string; isRTL: boolean }) 
     if (items.length === 0) {
         return (
             <p className="placeholder-text">
-                {isRTL ? 'خبری یافت نشد' : 'No news found'}
+                {t.news.empty}
             </p>
         );
     }
@@ -76,7 +86,7 @@ function TradingViewNews({ symbol, isRTL }: { symbol: string; isRTL: boolean }) 
     return (
         <div className="tradingview-news-list">
             <h3 className="news-section-title">
-                📺 {isRTL ? 'اخبار تریدینگ‌ویو' : 'TradingView News'} - {symbol}
+                {t.tabs.tradingviewNews} - {symbol}
             </h3>
             {items.map((item) => (
                 <a
@@ -105,6 +115,7 @@ function TradingViewNews({ symbol, isRTL }: { symbol: string; isRTL: boolean }) 
 }
 
 function ImportantNews({ isRTL }: { isRTL: boolean }) {
+    const { t } = useI18n();
     const { data: newsData, isLoading, isError } = useQuery({
         queryKey: ['important-news', isRTL ? 'fa' : 'en'],
         queryFn: async () => {
@@ -124,7 +135,7 @@ function ImportantNews({ isRTL }: { isRTL: boolean }) {
         return (
             <div className="error-state">
                 <span>⚠️</span>
-                <span>{isRTL ? 'خطا در بارگذاری اخبار' : 'Failed to load news'}</span>
+                <span>{t.error.generic}</span>
             </div>
         );
     }
@@ -134,7 +145,7 @@ function ImportantNews({ isRTL }: { isRTL: boolean }) {
     if (items.length === 0) {
         return (
             <p className="placeholder-text">
-                {isRTL ? 'خبری یافت نشد' : 'No news found'}
+                {t.news.empty}
             </p>
         );
     }
@@ -142,7 +153,7 @@ function ImportantNews({ isRTL }: { isRTL: boolean }) {
     return (
         <div className="tradingview-news-list">
             <h3 className="news-section-title">
-                🌍 {isRTL ? 'اخبار مهم بازار' : 'Important Market News'}
+                {t.tabs.importantNews}
             </h3>
             {items.map((item) => (
                 <a
@@ -172,10 +183,14 @@ function ImportantNews({ isRTL }: { isRTL: boolean }) {
 
 function App() {
     const { t, isRTL } = useI18n();
+    const { isAuthenticated, isLoading: authLoading, user, logout } = useAuth();
 
     const getPageFromUrl = (): Page => {
         if (window.location.pathname === '/signals') return 'signals';
         if (window.location.pathname === '/watchlist') return 'watchlist';
+        if (window.location.pathname === '/alerts') return 'alerts';
+        if (window.location.pathname === '/sentiment') return 'sentiment';
+        if (window.location.pathname === '/admin-users') return 'admin-users';
         const params = new URLSearchParams(window.location.search);
         return params.get('symbol') ? 'detail' : 'home';
     };
@@ -196,6 +211,12 @@ function App() {
                 setPage('signals');
             } else if (window.location.pathname === '/watchlist') {
                 setPage('watchlist');
+            } else if (window.location.pathname === '/alerts') {
+                setPage('alerts');
+            } else if (window.location.pathname === '/sentiment') {
+                setPage('sentiment');
+            } else if (window.location.pathname === '/admin-users') {
+                setPage('admin-users');
             } else if (s) {
                 setSymbol(s.toUpperCase());
                 setPage('detail');
@@ -292,6 +313,50 @@ function App() {
         setPage('home');
     }, []);
 
+    const handleNavigateToAlerts = useCallback(() => {
+        window.history.pushState({}, '', '/alerts');
+        setPage('alerts');
+    }, []);
+
+    const handleBackFromAlerts = useCallback(() => {
+        window.history.pushState({}, '', '/');
+        setPage('home');
+    }, []);
+
+    const handleNavigateToSentiment = useCallback(() => {
+        window.history.pushState({}, '', '/sentiment');
+        setPage('sentiment');
+    }, []);
+
+    const handleBackFromSentiment = useCallback(() => {
+        window.history.pushState({}, '', '/');
+        setPage('home');
+    }, []);
+
+    const handleBackFromAdminUsers = useCallback(() => {
+        window.history.pushState({}, '', '/');
+        setPage('home');
+    }, []);
+
+    const handleNavigateToAdminUsers = useCallback(() => {
+        window.history.pushState({}, '', '/admin-users');
+        setPage('admin-users');
+    }, []);
+
+    if (authLoading) {
+        return (
+            <div className="auth-page">
+                <div className="auth-container" style={{ textAlign: 'center' }}>
+                    <p className="auth-subtitle">{t.auth.loading}</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!isAuthenticated) {
+        return <LoginPage />;
+    }
+
     if (page === 'home') {
         return (
             <div className="app-container">
@@ -319,7 +384,7 @@ function App() {
                             }
                             onClick={handleNavigateToPullbacks}
                         >
-                            {isRTL ? 'سیگنال‌های بازار' : 'Market Signals'}
+                            {t.nav.marketSignals}
                         </Button>
                         <Button
                             variant="purple"
@@ -331,7 +396,62 @@ function App() {
                             }
                             onClick={handleNavigateToWatchlist}
                         >
-                            {isRTL ? 'واچ لیست' : 'Watchlist'}
+                            {t.nav.watchlist}
+                        </Button>
+                        <Button
+                            variant="purple"
+                            size="md"
+                            icon={
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                                </svg>
+                            }
+                            onClick={handleNavigateToAlerts}
+                        >
+                            {t.nav.alerts}
+                        </Button>
+                        <Button
+                            variant="purple"
+                            size="md"
+                            icon={
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                                    <line x1="9" y1="9" x2="9.01" y2="9"/>
+                                    <line x1="15" y1="9" x2="15.01" y2="9"/>
+                                </svg>
+                            }
+                            onClick={handleNavigateToSentiment}
+                        >
+                            {t.nav.sentiment}
+                        </Button>
+                        {user?.role === 'admin' && (
+                            <Button
+                                variant="purple"
+                                size="md"
+                                icon={
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="9" cy="7" r="4"/>
+                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                    </svg>
+                                }
+                                onClick={handleNavigateToAdminUsers}
+                            >
+                                {t.nav.userManagement}
+                            </Button>
+                        )}
+                        <Button
+                            variant="ghost"
+                            size="md"
+                            onClick={logout}
+                        >
+                            {t.nav.logoutWithUser.replace(
+                                '{username}',
+                                user?.username ?? '',
+                            )}
                         </Button>
                     </div>
                 </div>
@@ -358,78 +478,32 @@ function App() {
         );
     }
 
-    const tabs: { id: TabId; label: string; icon: string }[] =
-        isRTL
-            ? [
-                  {
-                      id: 'charts',
-                      label: 'نمودارها',
-                      icon: '📊',
-                  },
-                  {
-                      id: 'signals',
-                      label: 'سیگنال‌ها',
-                      icon: '📈',
-                  },
-                  {
-                      id: 'news',
-                      label: 'اخبار',
-                      icon: '📰',
-                  },
-                  {
-                      id: 'tradingview-news',
-                      label: 'اخبار تریدینگ‌ویو',
-                      icon: '📺',
-                  },
-                  {
-                      id: 'important-news',
-                      label: 'اخبار مهم',
-                      icon: '🌍',
-                  },
-                  {
-                      id: 'events',
-                      label: 'رویدادها',
-                      icon: '⚡',
-                  },
-              ]
-            : [
-                  {
-                      id: 'charts',
-                      label: 'Charts',
-                      icon: '📊',
-                  },
-                  {
-                      id: 'signals',
-                      label: 'Signals',
-                      icon: '📈',
-                  },
-                  {
-                      id: 'news',
-                      label: 'News',
-                      icon: '📰',
-                  },
-                  {
-                      id: 'tradingview-news',
-                      label: 'TradingView News',
-                      icon: '📺',
-                  },
-                  {
-                      id: 'important-news',
-                      label: 'Important News',
-                      icon: '🌍',
-                  },
-                  {
-                      id: 'events',
-                      label: 'Events',
-                      icon: '⚡',
-                  },
-              ];
+    if (page === 'alerts') {
+        return <AlertsPage onBack={handleBackFromAlerts} />;
+    }
+
+    if (page === 'sentiment') {
+        return <SentimentPage onBack={handleBackFromSentiment} />;
+    }
+
+    if (page === 'admin-users') {
+        return <AdminUsersPage onBack={handleBackFromAdminUsers} />;
+    }
+
+    const tabs: { id: TabId; label: string; icon: string }[] = [
+        { id: 'charts', label: t.tabs.charts, icon: '#' },
+        { id: 'signals', label: t.tabs.signals, icon: '^' },
+        { id: 'news', label: t.tabs.news, icon: '@' },
+        { id: 'tradingview-news', label: t.tabs.tradingviewNews, icon: 'TV' },
+        { id: 'important-news', label: t.tabs.importantNews, icon: '!' },
+        { id: 'events', label: t.tabs.events, icon: '*' },
+    ];
 
     return (
         <div className="detail-page">
             <div className="detail-header">
                 <Button variant="ghost" size="sm" onClick={handleBack}>
-                    ← {isRTL ? 'بازگشت' : 'Back'}
+                    ← {t.controls.back}
                 </Button>
                 <h1 className="detail-title">
                     {symbol}
@@ -598,7 +672,7 @@ function App() {
                                 <div className="error-state">
                                     <span>⚠️</span>
                                     <span>
-                                        Failed to load events
+                                        {t.error.failedToLoadEvents}
                                     </span>
                                 </div>
                             )}
@@ -648,19 +722,19 @@ function App() {
                                                         )}
                                                         {event.price && (
                                                             <span>
-                                                                Price:{' '}
+                                                                {t.events.price}:{' '}
                                                                 {event.price.toLocaleString()}
                                                             </span>
                                                         )}
                                                         {event.quantity && (
                                                             <span>
-                                                                Qty:{' '}
+                                                                {t.events.quantity}:{' '}
                                                                 {event.quantity.toLocaleString()}
                                                             </span>
                                                         )}
                                                         {event.value && (
                                                             <span>
-                                                                Value:{' '}
+                                                                {t.events.value}:{' '}
                                                                 {event.value.toLocaleString()}
                                                             </span>
                                                         )}
@@ -677,7 +751,7 @@ function App() {
                                     eventsData.items
                                         .length === 0) && (
                                     <p className="placeholder-text">
-                                        No events for{' '}
+                                        {t.error.noEventsFor}{' '}
                                         {symbol}
                                     </p>
                                 )}
