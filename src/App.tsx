@@ -11,6 +11,9 @@ import { LoginPage } from './pages/LoginPage';
 import { AlertsPage } from './pages/AlertsPage';
 import { SentimentPage } from './pages/SentimentPage';
 import { AdminUsersPage } from './pages/AdminUsersPage';
+import { CorrelationPage } from './pages/CorrelationPage';
+import { BacktestPage } from './pages/BacktestPage';
+import { ExecutorPage } from './pages/ExecutorPage';
 import { MarketSummary } from './components/MarketSummary';
 import { VolumeChart } from './components/VolumeChart';
 import { OpenInterestChart } from './components/OpenInterestChart';
@@ -32,8 +35,11 @@ import './pages/AuthPages.css';
 import './pages/AlertsPage.css';
 import './pages/SentimentPage.css';
 import './pages/AdminUsersPage.css';
+import './pages/CorrelationPage.css';
+import './pages/BacktestPage.css';
+import './pages/ExecutorPage.css';
 
-type Page = 'home' | 'detail' | 'signals' | 'watchlist' | 'alerts' | 'sentiment' | 'admin-users';
+type Page = 'home' | 'detail' | 'signals' | 'watchlist' | 'alerts' | 'sentiment' | 'admin-users' | 'correlation' | 'backtest' | 'executor';
 type TabId = 'charts' | 'signals' | 'news' | 'events' | 'tradingview-news' | 'important-news';
 
 interface TradingViewNewsItem {
@@ -191,6 +197,9 @@ function App() {
         if (window.location.pathname === '/alerts') return 'alerts';
         if (window.location.pathname === '/sentiment') return 'sentiment';
         if (window.location.pathname === '/admin-users') return 'admin-users';
+        if (window.location.pathname === '/correlation') return 'correlation';
+        if (window.location.pathname === '/backtest') return 'backtest';
+        if (window.location.pathname === '/executor') return 'executor';
         const params = new URLSearchParams(window.location.search);
         return params.get('symbol') ? 'detail' : 'home';
     };
@@ -217,6 +226,12 @@ function App() {
                 setPage('sentiment');
             } else if (window.location.pathname === '/admin-users') {
                 setPage('admin-users');
+            } else if (window.location.pathname === '/correlation') {
+                setPage('correlation');
+            } else if (window.location.pathname === '/backtest') {
+                setPage('backtest');
+            } else if (window.location.pathname === '/executor') {
+                setPage('executor');
             } else if (s) {
                 setSymbol(s.toUpperCase());
                 setPage('detail');
@@ -338,6 +353,36 @@ function App() {
         setPage('home');
     }, []);
 
+    const handleNavigateToCorrelation = useCallback(() => {
+        window.history.pushState({}, '', '/correlation');
+        setPage('correlation');
+    }, []);
+
+    const handleBackFromCorrelation = useCallback(() => {
+        window.history.pushState({}, '', '/');
+        setPage('home');
+    }, []);
+
+    const handleNavigateToBacktest = useCallback(() => {
+        window.history.pushState({}, '', '/backtest');
+        setPage('backtest');
+    }, []);
+
+    const handleBackFromBacktest = useCallback(() => {
+        window.history.pushState({}, '', '/');
+        setPage('home');
+    }, []);
+
+    const handleNavigateToExecutor = useCallback(() => {
+        window.history.pushState({}, '', '/executor');
+        setPage('executor');
+    }, []);
+
+    const handleBackFromExecutor = useCallback(() => {
+        window.history.pushState({}, '', '/');
+        setPage('home');
+    }, []);
+
     const handleNavigateToAdminUsers = useCallback(() => {
         window.history.pushState({}, '', '/admin-users');
         setPage('admin-users');
@@ -426,6 +471,45 @@ function App() {
                         >
                             {t.nav.sentiment}
                         </Button>
+                        <Button
+                            variant="purple"
+                            size="md"
+                            icon={
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <rect x="3" y="3" width="7" height="7"/>
+                                    <rect x="14" y="3" width="7" height="7"/>
+                                    <rect x="3" y="14" width="7" height="7"/>
+                                    <rect x="14" y="14" width="7" height="7"/>
+                                </svg>
+                            }
+                            onClick={handleNavigateToCorrelation}
+                        >
+                            {t.nav.correlation}
+                        </Button>
+                        <Button
+                            variant="purple"
+                            size="md"
+                            icon={
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                                </svg>
+                            }
+                            onClick={handleNavigateToBacktest}
+                        >
+                            {t.nav.backtest}
+                        </Button>
+                        <Button
+                            variant="purple"
+                            size="md"
+                            icon={
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                                </svg>
+                            }
+                            onClick={handleNavigateToExecutor}
+                        >
+                            {t.nav.executor}
+                        </Button>
                         {user?.role === 'admin' && (
                             <Button
                                 variant="purple"
@@ -488,6 +572,18 @@ function App() {
 
     if (page === 'admin-users') {
         return <AdminUsersPage onBack={handleBackFromAdminUsers} />;
+    }
+
+    if (page === 'correlation') {
+        return <CorrelationPage onBack={handleBackFromCorrelation} />;
+    }
+
+    if (page === 'backtest') {
+        return <BacktestPage onBack={handleBackFromBacktest} />;
+    }
+
+    if (page === 'executor') {
+        return <ExecutorPage onBack={handleBackFromExecutor} />;
     }
 
     const tabs: { id: TabId; label: string; icon: string }[] = [

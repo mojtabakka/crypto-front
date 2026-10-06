@@ -1,0 +1,370 @@
+.correlation-page {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.correlation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.correlation-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.correlation-title-row h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.correlation-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.correlation-select {
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 13px;
+}
+
+.correlation-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.correlation-error {
+  padding: 12px 16px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  color: #ef4444;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.correlation-loading,
+.correlation-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.correlation-empty p {
+  margin-bottom: 20px;
+}
+
+.correlation-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.summary-card {
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.summary-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.summary-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.verdict-card {
+  padding: 18px 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid;
+  border-radius: 12px;
+  margin-bottom: 14px;
+}
+
+.verdict-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 12px;
+}
+
+.verdict-header h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+}
+
+.verdict-badge {
+  padding: 3px 10px;
+  border: 1px solid;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.verdict-card p {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.verdict-symbols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.symbol-chip {
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.symbol-chip.danger {
+  background: rgba(239, 68, 68, 0.18);
+  color: #ef4444;
+}
+
+.symbol-chip.good {
+  background: rgba(34, 197, 94, 0.18);
+  color: #22c55e;
+}
+
+.rotation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.rotation-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+}
+
+.rotation-symbol {
+  font-weight: 600;
+  font-size: 13px;
+  color: #fff;
+  min-width: 90px;
+}
+
+.rotation-numbers {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  font-variant-numeric: tabular-nums;
+}
+
+.rotation-badge {
+  font-size: 11px;
+  font-weight: 600;
+  margin-inline-start: auto;
+}
+
+.matrix-section {
+  margin-top: 32px;
+}
+
+.matrix-section h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 16px;
+}
+
+.matrix-wrap {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.matrix-note {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 10px;
+}
+
+.matrix-scroll {
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.matrix-table {
+  border-collapse: separate;
+  border-spacing: 2px;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.matrix-header {
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  font-size: 9px;
+  padding: 4px;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.matrix-header.is-benchmark {
+  color: #f59e0b;
+}
+
+.matrix-row-header {
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  font-size: 9px;
+  padding: 4px 6px;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.matrix-row-header.is-benchmark {
+  color: #f59e0b;
+}
+
+.corner-cell {
+  background: transparent;
+}
+
+.matrix-cell {
+  min-width: 38px;
+  padding: 5px 3px;
+  text-align: center;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+.matrix-cell.diagonal {
+  font-weight: 400;
+}
+
+.matrix-cell.empty {
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.matrix-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.legend-label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.legend-gradient {
+  flex: 1;
+  max-width: 220px;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(
+    to right,
+    rgb(40, 195, 255),
+    rgb(128, 128, 128),
+    rgb(255, 55, 55)
+  );
+}
+
+.insights-table-wrap {
+  overflow-x: auto;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+}
+
+.insights-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.insights-table th,
+.insights-table td {
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  white-space: nowrap;
+}
+
+.insights-table th {
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.symbol-cell {
+  font-weight: 600;
+  color: #fff;
+}
+
+.corr-value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.delta {
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+}
+
+.regime-chip {
+  padding: 2px 8px;
+  border: 1px solid;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .correlation-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .correlation-controls {
+    flex-wrap: wrap;
+  }
+
+  .correlation-select {
+    flex: 1;
+  }
+}
