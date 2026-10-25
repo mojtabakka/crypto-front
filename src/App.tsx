@@ -19,6 +19,11 @@ import { PumpDetectorPage } from './pages/PumpDetectorPage';
 import { DumpDetectorPage } from './pages/DumpDetectorPage';
 import { PreMoveDetectorPage } from './pages/PreMoveDetectorPage';
 import { SafeSellPage } from './pages/SafeSellPage';
+import { TVLAnalysisPage } from './pages/TVLAnalysisPage';
+import { ProtocolAnalysisPage } from './pages/ProtocolAnalysisPage';
+import { CoinGlassSignalsPage } from './pages/CoinGlassSignalsPage';
+import { PressureScanPage } from './pages/PressureScanPage';
+import { VolumeMarketCapPage } from './pages/VolumeMarketCapPage';
 import { MarketSummary } from './components/MarketSummary';
 import { VolumeChart } from './components/VolumeChart';
 import { OpenInterestChart } from './components/OpenInterestChart';
@@ -45,10 +50,15 @@ import './pages/NewListingsPage.css';
 import './pages/LogsPage.css';
 import './pages/PumpDetectorPage.css';
 import './pages/SafeSellPage.css';
+import './pages/TVLAnalysisPage.css';
 import './components/ExchangeDropdown.css';
 import './pages/NewListingsPage.css';
+import './pages/ProtocolAnalysisPage.css';
+import './pages/CoinGlassSignalsPage.css';
+import './pages/PressureScanPage.css';
+import './pages/VolumeMarketCapPage.css';
 
-type Page = 'home' | 'detail' | 'signals' | 'watchlist' | 'four-hour-signals' | 'long-short-signals' | 'volume-profile' | 'new-listings' | 'logs' | 'pump-detector' | 'dump-detector' | 'pre-move-detector' | 'safe-sell';
+type Page = 'home' | 'detail' | 'signals' | 'watchlist' | 'four-hour-signals' | 'long-short-signals' | 'volume-profile' | 'new-listings' | 'logs' | 'pump-detector' | 'dump-detector' | 'pre-move-detector' | 'safe-sell' | 'tvl-analysis' | 'protocol-analysis' | 'coinglass-signals' | 'volume-marketcap' | 'pressure-scan';
 type TabId = 'charts' | 'signals' | 'news' | 'events' | 'tradingview-news' | 'important-news' | 'volume-profile';
 
 interface TradingViewNewsItem {
@@ -210,6 +220,11 @@ function App() {
         if (window.location.pathname === '/dump-detector') return 'dump-detector';
         if (window.location.pathname === '/pre-move-detector') return 'pre-move-detector';
         if (window.location.pathname === '/safe-sell') return 'safe-sell';
+        if (window.location.pathname === '/tvl-analysis') return 'tvl-analysis';
+        if (window.location.pathname === '/protocol-analysis') return 'protocol-analysis';
+        if (window.location.pathname === '/coinglass-signals') return 'coinglass-signals';
+        if (window.location.pathname === '/pressure-scan') return 'pressure-scan';
+        if (window.location.pathname === '/volume-marketcap') return 'volume-marketcap';
         const params = new URLSearchParams(window.location.search);
         return params.get('symbol') ? 'detail' : 'home';
     };
@@ -224,8 +239,6 @@ function App() {
 
     useEffect(() => {
         const handlePopState = () => {
-            const params = new URLSearchParams(window.location.search);
-            const s = params.get('symbol');
 
             if (window.location.pathname === '/signals') {
                 setPage('signals');
@@ -249,9 +262,16 @@ function App() {
                 setPage('pre-move-detector');
             } else if (window.location.pathname === '/safe-sell') {
                 setPage('safe-sell');
-            } else if (s) {
-                setSymbol(s.toUpperCase());
-                setPage('detail');
+            } else if (window.location.pathname === '/tvl-analysis') {
+                setPage('tvl-analysis');
+            } else if (window.location.pathname === '/protocol-analysis') {
+                setPage('protocol-analysis');
+            } else if (window.location.pathname === '/coinglass-signals') {
+                setPage('coinglass-signals');
+            } else if (window.location.pathname === '/pressure-scan') {
+                setPage('pressure-scan');
+            } else if (window.location.pathname === '/volume-marketcap') {
+                setPage('volume-marketcap');
             } else {
                 setPage('home');
             }
@@ -396,6 +416,26 @@ function App() {
     const handleNavigateToSafeSell = useCallback(() => {
         window.history.pushState({}, '', '/safe-sell');
         setPage('safe-sell');
+    }, []);
+
+    const handleNavigateToTVLAnalysis = useCallback(() => {
+        window.history.pushState({}, '', '/tvl-analysis');
+        setPage('tvl-analysis');
+    }, []);
+
+    const handleNavigateToProtocolAnalysis = useCallback(() => {
+        window.history.pushState({}, '', '/protocol-analysis');
+        setPage('protocol-analysis');
+    }, []);
+
+    const handleNavigateToCoinGlassSignals = useCallback(() => {
+        window.history.pushState({}, '', '/coinglass-signals');
+        setPage('coinglass-signals');
+    }, []);
+
+    const handleNavigateToPressureScan = useCallback(() => {
+        window.history.pushState({}, '', '/pressure-scan');
+        setPage('pressure-scan');
     }, []);
 
     const { blockCount } = useExchangeBlockNotifier();
@@ -629,6 +669,47 @@ function App() {
                         >
                             {isRTL ? 'فروش ایمن' : 'Safe Sell'}
                         </Button>
+                        <Button
+                            variant="success"
+                            size="md"
+                            icon={
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M12 2v20M2 12h20"/>
+                                    <path d="M18 6L12 12L6 18"/>
+                                </svg>
+                            }
+                            onClick={handleNavigateToTVLAnalysis}
+                        >
+                            {isRTL ? 'تحلیل TVL' : 'TVL Analysis'}
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleNavigateToProtocolAnalysis}
+                        >
+                            {isRTL ? 'تحلیل پروتکل' : 'Protocol Analysis'}
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleNavigateToCoinGlassSignals}
+                        >
+                            {isRTL ? 'کوين گلاس' : 'CoinGlass'}
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleNavigateToPressureScan}
+                        >
+                            {isRTL ? 'فشار حجم' : 'Volume Pressure'}
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleNavigateToVolumeMarketCap}
+                        >
+                            {isRTL ? 'حجم / مارکت‌کپ' : 'Volume / MCap'}
+                        </Button>
                     </div>
                 </div>
                 <HomePage onSearch={handleSearch} />
@@ -741,6 +822,51 @@ function App() {
             <>
                 <Toaster />
                 <SafeSellPage />
+            </>
+        );
+    }
+
+    if (page === 'tvl-analysis') {
+        return (
+            <>
+                <Toaster />
+                <TVLAnalysisPage />
+            </>
+        );
+    }
+
+    if (page === 'protocol-analysis') {
+        return (
+            <>
+                <Toaster />
+                <ProtocolAnalysisPage />
+            </>
+        );
+    }
+
+    if (page === 'coinglass-signals') {
+        return (
+            <>
+                <Toaster />
+                <CoinGlassSignalsPage />
+            </>
+        );
+    }
+
+    if (page === 'pressure-scan') {
+        return (
+            <>
+                <Toaster />
+                <PressureScanPage />
+            </>
+        );
+    }
+
+    if (page === 'volume-marketcap') {
+        return (
+            <>
+                <Toaster />
+                <VolumeMarketCapPage />
             </>
         );
     }

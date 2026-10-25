@@ -1,0 +1,159 @@
+.pressure-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+    min-height: 100vh;
+    background: linear-gradient(180deg, #0a0e17 0%, #0f172a 100%);
+}
+
+.pressure-page h1 {
+    margin: 0;
+    font-size: 22px;
+    color: #e2e8f0;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.scan-btn {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    border: none;
+    color: white;
+    padding: 10px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.scan-btn:hover {
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    transform: translateY(-1px);
+}
+
+.formula-info {
+    background: rgba(99, 102, 241, 0.08);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+}
+
+.formula-info h3 {
+    margin: 0 0 12px 0;
+    color: #a5b4fc;
+    font-size: 14px;
+}
+
+.formula-info ul {
+    margin: 0;
+    padding-left: 20px;
+    color: #cbd5e1;
+    font-size: 13px;
+    line-height: 1.8;
+}
+
+.signals-count {
+    color: #94a3b8;
+    margin-bottom: 16px;
+    font-size: 13px;
+}
+
+.signals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+}
+
+.signal-card {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 12px;
+    padding: 16px;
+    transition: all 0.2s ease;
+}
+
+.signal-card:hover {
+    border-color: rgba(99, 102, 241, 0.5);
+    background: rgba(99, 102, 241, 0.05);
+}
+
+.signal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.symbol {
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.signal-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.price-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 15px;
+    color: #e2e8f0;
+}
+
+.metrics {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.metric {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 60px;
+}
+
+.metric-label {
+    font-size: 11px;
+    color: #64748b;
+}
+
+.pos {
+    color: #22c55e;
+}
+
+.neg {
+    color: #ef4444;
+}
+
+.reason {
+    font-size: 12px;
+    color: #cbd5e1;
+    line-height: 1.6;
+    padding-top: 10px;
+    border-top: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.empty-state {
+    text-align: center;
+    color: #64748b;
+    padding: 60px;
+}
+
+.error-state {
+    text-align: center;
+    padding: 40px;
+}
