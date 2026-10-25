@@ -12,6 +12,7 @@ import { SignalsTabs } from '../components/SignalsTabs';
 import { SignalRow } from '../components/SignalRow';
 import { SignalActions } from '../components/SignalActions';
 import { LongShortTab } from '../components/LongShortTab';
+import { VolumeMarketCapPanel } from '../components/VolumeMarketCapPanel';
 import './SignalsPage.css';
 
 interface SignalsPageProps {
@@ -604,6 +605,7 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
           onToggleReliable={handleToggleReliable}
         />
         <SignalsTabs activeTab={scanner.activeTab} isRTL={isRTL} onTabChange={setActiveTab} />
+        <VolumeMarketCapPanel />
         {renderTabContent()}
       </div>
       {newsSymbol && (
