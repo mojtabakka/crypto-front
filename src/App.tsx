@@ -21,9 +21,12 @@ import { PreMoveDetectorPage } from './pages/PreMoveDetectorPage';
 import { SafeSellPage } from './pages/SafeSellPage';
 import { TVLAnalysisPage } from './pages/TVLAnalysisPage';
 import { ProtocolAnalysisPage } from './pages/ProtocolAnalysisPage';
-import { CoinGlassSignalsPage } from './pages/CoinGlassSignalsPage';
 import { PressureScanPage } from './pages/PressureScanPage';
 import { VolumeMarketCapPage } from './pages/VolumeMarketCapPage';
+import { IchimokuScannerPage } from './pages/IchimokuScannerPage';
+import { IchimokuLaggingSpanPage } from './pages/IchimokuLaggingSpanPage';
+import { IchimokuCombinedPage } from './pages/IchimokuCombinedPage';
+import { CoinGlassSignalsPage } from './pages/CoinGlassSignalsPage';
 import { MarketSummary } from './components/MarketSummary';
 import { VolumeChart } from './components/VolumeChart';
 import { OpenInterestChart } from './components/OpenInterestChart';
@@ -55,10 +58,13 @@ import './components/ExchangeDropdown.css';
 import './pages/NewListingsPage.css';
 import './pages/ProtocolAnalysisPage.css';
 import './pages/CoinGlassSignalsPage.css';
+import './pages/IchimokuScannerPage.css';
+import './pages/IchimokuLaggingSpanPage.css';
+import './pages/IchimokuCombinedPage.css';
 import './pages/PressureScanPage.css';
 import './pages/VolumeMarketCapPage.css';
 
-type Page = 'home' | 'detail' | 'signals' | 'watchlist' | 'four-hour-signals' | 'long-short-signals' | 'volume-profile' | 'new-listings' | 'logs' | 'pump-detector' | 'dump-detector' | 'pre-move-detector' | 'safe-sell' | 'tvl-analysis' | 'protocol-analysis' | 'coinglass-signals' | 'volume-marketcap' | 'pressure-scan';
+type Page = 'home' | 'detail' | 'signals' | 'watchlist' | 'four-hour-signals' | 'long-short-signals' | 'volume-profile' | 'new-listings' | 'logs' | 'pump-detector' | 'dump-detector' | 'pre-move-detector' | 'safe-sell' | 'tvl-analysis' | 'protocol-analysis' | 'coinglass-signals' | 'volume-marketcap' | 'pressure-scan' | 'ichimoku-scanner' | 'ichimoku-lagging-span' | 'ichimoku-combined';
 type TabId = 'charts' | 'signals' | 'news' | 'events' | 'tradingview-news' | 'important-news' | 'volume-profile';
 
 interface TradingViewNewsItem {
@@ -225,6 +231,9 @@ function App() {
         if (window.location.pathname === '/coinglass-signals') return 'coinglass-signals';
         if (window.location.pathname === '/pressure-scan') return 'pressure-scan';
         if (window.location.pathname === '/volume-marketcap') return 'volume-marketcap';
+        if (window.location.pathname === '/ichimoku-scanner') return 'ichimoku-scanner';
+        if (window.location.pathname === '/ichimoku-lagging-span') return 'ichimoku-lagging-span';
+        if (window.location.pathname === '/ichimoku-combined') return 'ichimoku-combined';
         const params = new URLSearchParams(window.location.search);
         return params.get('symbol') ? 'detail' : 'home';
     };
@@ -272,6 +281,12 @@ function App() {
                 setPage('pressure-scan');
             } else if (window.location.pathname === '/volume-marketcap') {
                 setPage('volume-marketcap');
+            } else if (window.location.pathname === '/ichimoku-scanner') {
+                setPage('ichimoku-scanner');
+            } else if (window.location.pathname === '/ichimoku-lagging-span') {
+                setPage('ichimoku-lagging-span');
+            } else if (window.location.pathname === '/ichimoku-combined') {
+                setPage('ichimoku-combined');
             } else {
                 setPage('home');
             }
@@ -436,6 +451,26 @@ function App() {
     const handleNavigateToPressureScan = useCallback(() => {
         window.history.pushState({}, '', '/pressure-scan');
         setPage('pressure-scan');
+    }, []);
+
+    const handleNavigateToVolumeMarketCap = useCallback(() => {
+        window.history.pushState({}, '', '/volume-marketcap');
+        setPage('volume-marketcap');
+    }, []);
+
+    const handleNavigateToIchimokuScanner = useCallback(() => {
+        window.history.pushState({}, '', '/ichimoku-scanner');
+        setPage('ichimoku-scanner');
+    }, []);
+
+    const handleNavigateToIchimokuLaggingSpan = useCallback(() => {
+        window.history.pushState({}, '', '/ichimoku-lagging-span');
+        setPage('ichimoku-lagging-span');
+    }, []);
+
+    const handleNavigateToIchimokuCombined = useCallback(() => {
+        window.history.pushState({}, '', '/ichimoku-combined');
+        setPage('ichimoku-combined');
     }, []);
 
     const { blockCount } = useExchangeBlockNotifier();
@@ -710,6 +745,27 @@ function App() {
                         >
                             {isRTL ? 'حجم / مارکت‌کپ' : 'Volume / MCap'}
                         </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleNavigateToIchimokuScanner}
+                        >
+                            {isRTL ? 'ابر 이chimoku' : 'Ichimoku Cloud'}
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleNavigateToIchimokuLaggingSpan}
+                        >
+                            {isRTL ? 'خروج لینگ-span' : 'Lagging Span Exit'}
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleNavigateToIchimokuCombined}
+                        >
+                            {isRTL ? 'ترکیبی ابر+لینگ-span' : 'Ichimoku Combined'}
+                        </Button>
                     </div>
                 </div>
                 <HomePage onSearch={handleSearch} />
@@ -867,6 +923,33 @@ function App() {
             <>
                 <Toaster />
                 <VolumeMarketCapPage />
+            </>
+        );
+    }
+
+    if (page === 'ichimoku-scanner') {
+        return (
+            <>
+                <Toaster />
+                <IchimokuScannerPage />
+            </>
+        );
+    }
+
+    if (page === 'ichimoku-lagging-span') {
+        return (
+            <>
+                <Toaster />
+                <IchimokuLaggingSpanPage />
+            </>
+        );
+    }
+
+    if (page === 'ichimoku-combined') {
+        return (
+            <>
+                <Toaster />
+                <IchimokuCombinedPage />
             </>
         );
     }
