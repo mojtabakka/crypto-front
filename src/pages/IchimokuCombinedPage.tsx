@@ -1,11 +1,10 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useI18n } from '../i18n';
-import { Loading } from '../components/Loading';
-import { fetchIchimokuCombinedScan } from '../api/ichimoku-combined/ichimoku-combined';
 import type {
   IchimokuCombinedScanResult,
   IchimokuCombinedSignal,
 } from '../types/ichimoku';
+import html2canvas from 'html2canvas';
 import './IchimokuCombinedPage.css';
 
 const INTERVAL_OPTIONS: { value: string; label: string }[] = [
@@ -35,6 +34,8 @@ export function IchimokuCombinedPage() {
   const [data, setData] = useState<IchimokuCombinedScanResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
+  const tableRef = useRef<HTMLDivElement>(null);
 
   const handleScan = async () => {
     setIsLoading(true);
@@ -47,6 +48,43 @@ export function IchimokuCombinedPage() {
       setError(err instanceof Error ? err.message : 'خطا در بارگذاری');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleShare = async () => {
+    if (!tableRef.current || matches.length === 0) return;
+    setIsSharing(true);
+    try {
+      const canvas = await html2canvas(tableRef.current, {
+        backgroundColor: '#0a0e17',
+        scale: 2,
+      });
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          setIsSharing(false);
+          return;
+        }
+        const file = new File([blob], `ichimoku-combined-${interval}-${Date.now()}.png`, { type: 'image/png' });
+        const shareData: ShareData = {
+          title: isRTL ? 'اسکنر ابر و لینگ-span ترکیبی' : 'Ichimoku Combined Scanner',
+          text: isRTL ? `${matches.length} ارز با سیگنال خرید ترکیبی (${interval})` : `${matches.length} coins with combined buy signals (${interval})`,
+          files: [file],
+        };
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share(shareData);
+        } else {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `ichimoku-combined-${interval}.png`;
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+        setIsSharing(false);
+      }, 'image/png');
+    } catch (err) {
+      console.error(err);
+      setIsSharing(false);
     }
   };
 
@@ -129,38 +167,45 @@ export function IchimokuCombinedPage() {
               </p>
             </div>
           ) : (
-            <div className="table-wrapper">
-              <table className="ichimoku-combined-table">
-                <thead>
-                  <tr>
-                    <th>{isRTL ? 'نماد' : 'Symbol'}</th>
-                    <th>{isRTL ? 'قیمت' : 'Price'}</th>
-                    <th>{isRTL ? 'تنكان' : 'Tenkan'}</th>
-                    <th>{isRTL ? 'کیجون' : 'Kijun'}</th>
-                    <th>{isRTL ? 'سقف ابر' : 'Cloud Top'}</th>
-                    <th>{isRTL ? 'لینگ-span' : 'Chikou'}</th>
-                    <th>{isRTL ? 'چند روز قبل' : 'Bars Ago'}</th>
-                    <th>{isRTL ? 'وضعیت' : 'Status'}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {matches.map((s) => (
-                    <tr key={s.symbol} className="signal-row buy-row">
-                      <td className="symbol-cell">{s.symbol}</td>
-                      <td>{fmtUsd(s.price)}</td>
-                      <td>{fmt(s.tenkan)}</td>
-                      <td>{fmt(s.kijun)}</td>
-                      <td>{fmtUsd(s.cloudTop)}</td>
-                      <td>{fmtUsd(s.chikouValue)}</td>
-                      <td>{barsAgoLabel(isRTL, s.barsAgo)}</td>
-                      <td>
-                        <span className="signal-badge buy">{isRTL ? 'خرید' : 'BUY'}</span>
-                      </td>
+            <>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px' }}>
+                <button onClick={handleShare} className="scan-btn" disabled={isSharing}>
+                  {isSharing ? (isRTL ? 'در حال اشتراک‌گذاری...' : 'Sharing...') : (isRTL ? '📤 اشتراک در تلگرام/واتساپ' : '📤 Share to Telegram/WhatsApp')}
+                </button>
+              </div>
+              <div className="table-wrapper" ref={tableRef}>
+                <table className="ichimoku-combined-table">
+                  <thead>
+                    <tr>
+                      <th>{isRTL ? 'نماد' : 'Symbol'}</th>
+                      <th>{isRTL ? 'قیمت' : 'Price'}</th>
+                      <th>{isRTL ? 'تنكان' : 'Tenkan'}</th>
+                      <th>{isRTL ? 'کیجون' : 'Kijun'}</th>
+                      <th>{isRTL ? 'سقف ابر' : 'Cloud Top'}</th>
+                      <th>{isRTL ? 'لینگ-span' : 'Chikou'}</th>
+                      <th>{isRTL ? 'چند روز قبل' : 'Bars Ago'}</th>
+                      <th>{isRTL ? 'وضعیت' : 'Status'}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {matches.map((s) => (
+                      <tr key={s.symbol} className="signal-row buy-row">
+                        <td className="symbol-cell">{s.symbol}</td>
+                        <td>{fmtUsd(s.price)}</td>
+                        <td>{fmt(s.tenkan)}</td>
+                        <td>{fmt(s.kijun)}</td>
+                        <td>{fmtUsd(s.cloudTop)}</td>
+                        <td>{fmtUsd(s.chikouValue)}</td>
+                        <td>{barsAgoLabel(isRTL, s.barsAgo)}</td>
+                        <td>
+                          <span className="signal-badge buy">{isRTL ? 'خرید' : 'BUY'}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </>
       )}
