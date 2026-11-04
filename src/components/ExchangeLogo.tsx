@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import type { ExchangeName } from '../api/market/market';
-import './ExchangeLogo.css';
 
 export const EXCHANGE_DISPLAY_NAMES: Record<ExchangeName, string> = {
     BINANCE: 'Binance',

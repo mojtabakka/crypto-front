@@ -13,7 +13,6 @@ import { SignalRow } from '../components/SignalRow';
 import { SignalActions } from '../components/SignalActions';
 import { LongShortTab } from '../components/LongShortTab';
 import { VolumeMarketCapPanel } from '../components/VolumeMarketCapPanel';
-import './SignalsPage.css';
 
 interface SignalsPageProps {
   onSelectSymbol: (symbol: string) => void;
@@ -67,12 +66,14 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
     ];
 
     return (
-      <>
-        <div className="fake-risk-legend">
-          <span>⚠️ {isRTL ? 'احتمال فیک بودن سیگنال' : 'Fake Signal Probability'}</span>
-          <span className="fake-risk-low">🟢 {isRTL ? 'کم' : 'Low'} (&lt;35%)</span>
-          <span className="fake-risk-medium">🟡 {isRTL ? 'متوسط' : 'Medium'} (35-65%)</span>
-          <span className="fake-risk-high">🔴 {isRTL ? 'زیاد' : 'High'} (&gt;65%)</span>
+      <div className="mx-auto px-4 py-6 max-w-7xl">
+        <div className="bg-gradient-to-r from-orange-500/10 to-red-500/10 mb-6 p-4 border border-orange-500/30 rounded-xl">
+          <div className="flex flex-wrap items-center gap-4 text-sm">
+            <span className="font-semibold text-orange-400">⚠️ {isRTL ? 'احتمال فیک بودن سیگنال' : 'Fake Signal Probability'}</span>
+            <span className="text-green-400">🟢 {isRTL ? 'کم' : 'Low'} (&lt;35%)</span>
+            <span className="text-yellow-400">🟡 {isRTL ? 'متوسط' : 'Medium'} (35-65%)</span>
+            <span className="text-red-400">🔴 {isRTL ? 'زیاد' : 'High'} (&gt;65%)</span>
+          </div>
         </div>
         {(scanner.signalsLoading || scanner.reliableSignalsLoading || scanner.fakeSignalsLoading) && (
           <Loading isRTL={isRTL} progress={scanProgress?.current} total={scanProgress?.total} />
@@ -80,8 +81,10 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
         {activeData && (
           <>
             {activeData.longs.length > 0 && (
-              <div className="signals-section">
-                <h4>🟢 {isRTL ? 'فرصت‌های لانگ' : 'Long Opportunities'}</h4>
+              <div className="mb-6">
+                <h4 className="flex items-center gap-2 mb-3 font-semibold text-green-400 text-lg">
+                  🟢 {isRTL ? 'فرصت‌های لانگ' : 'Long Opportunities'}
+                </h4>
                 {activeData.longs.map((item, i) => (
                   <SignalRow
                     key={item.symbol}
@@ -98,13 +101,15 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
                 ))}
               </div>
             )}
-            <div className="signals-section">
-              <h4>🔴 {isRTL ? 'فرصت‌های شورت' : 'Short Opportunities'}</h4>
-              <div className="timeframe-tabs">
+            <div className="mb-6">
+              <h4 className="flex items-center gap-2 mb-3 font-semibold text-red-400 text-lg">
+                🔴 {isRTL ? 'فرصت‌های شورت' : 'Short Opportunities'}
+              </h4>
+              <div className="flex gap-2 bg-slate-800/40 mb-4 p-1 rounded-lg w-fit">
                 {timeframeTabs.map((tf) => (
                   <button
                     key={tf.key}
-                    className={`timeframe-tab ${shorts === tf.key ? 'active' : ''}`}
+                    className={`px-4 py-1.5 rounded-md text-sm transition-colors ${shorts === tf.key ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/40'}`}
                     onClick={() => scanner.handleShortTimeframeChange(tf.key)}
                   >
                     {tf.label}
@@ -131,12 +136,12 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
                 </>
               )}
               {!currentShorts.loading && (!currentShorts.data?.shorts || currentShorts.data.shorts.length === 0) && (
-                <p className="empty">{isRTL ? 'سیگنالی یافت نشد' : 'No signals found'}</p>
+                <p className="py-8 text-slate-400 text-center">{isRTL ? 'سیگنالی یافت نشد' : 'No signals found'}</p>
               )}
             </div>
           </>
         )}
-      </>
+      </div>
     );
   };
 
@@ -201,42 +206,46 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
 
   if (tab === 'funding-extreme') {
     return (
-      <div className="signals-section">
-        <h4>Funding Extreme</h4>
-        {scanner.fundingExtremeLoading && <Loading isRTL={isRTL} />}
-        {!scanner.fundingExtremeLoading && scanner.fundingExtremeData && scanner.fundingExtremeData.symbols.length > 0 && (
-          <>
-            {scanner.fundingExtremeData.symbols.map((item, i) => (
-              <div key={item.symbol} className="signal-item" onClick={() => onSelectSymbol(item.symbol)}>
-                <div className="signal-rank">{i + 1}</div>
-                <div className="signal-info">
-                  <span className="signal-symbol">{item.symbol}</span>
-                  <span className={`signal-badge ${item.direction === 'LONG_SQUEEZE' ? 'long' : item.direction === 'SHORT_SQUEEZE' ? 'short' : ''}`}>
-                    {item.direction === 'LONG_SQUEEZE' ? 'LONG_SQUEEZE' : item.direction === 'SHORT_SQUEEZE' ? 'SHORT_SQUEEZE' : 'NEUTRAL'}
-                  </span>
+      <div className="mx-auto px-4 py-6 max-w-7xl">
+        <div className="mb-6">
+          <h4 className="flex items-center gap-2 mb-3 font-semibold text-orange-400 text-lg">⚡ Funding Extreme</h4>
+          {scanner.fundingExtremeLoading && <Loading isRTL={isRTL} />}
+          {!scanner.fundingExtremeLoading && scanner.fundingExtremeData && scanner.fundingExtremeData.symbols.length > 0 && (
+            <>
+              {scanner.fundingExtremeData.symbols.map((item, i) => (
+                <div key={item.symbol} className="bg-slate-800/40 hover:bg-slate-700/40 mb-2 p-4 border border-slate-700/50 rounded-xl transition-colors cursor-pointer" onClick={() => onSelectSymbol(item.symbol)}>
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <span className="font-medium text-slate-500">{i + 1}</span>
+                      <span className="font-semibold text-slate-100 text-lg">{item.symbol}</span>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${item.direction === 'LONG_SQUEEZE' ? 'bg-green-500/10 text-green-400' : item.direction === 'SHORT_SQUEEZE' ? 'bg-red-500/10 text-red-400' : 'bg-slate-500/10 text-slate-400'}`}>
+                        {item.direction === 'LONG_SQUEEZE' ? 'LONG_SQUEEZE' : item.direction === 'SHORT_SQUEEZE' ? 'SHORT_SQUEEZE' : 'NEUTRAL'}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-4 text-sm">
+                      <span className={`font-medium ${item.fundingRate > 0 ? 'text-red-400' : 'text-green-400'}`}>
+                        Funding: {(item.fundingRate * 100).toFixed(4)}%
+                      </span>
+                      <span className={`font-medium ${item.priceChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {item.priceChange > 0 ? '+' : ''}{item.priceChange.toFixed(2)}%
+                      </span>
+                      {item.direction !== 'NEUTRAL' && (
+                        <>
+                          <span className="text-green-400">T1: {item.target1 > 0 ? '+' : ''}{item.target1.toFixed(1)}%</span>
+                          <span className="text-green-400">T2: {item.target2 > 0 ? '+' : ''}{item.target2.toFixed(1)}%</span>
+                          <span className="text-green-400">T3: {item.target3 > 0 ? '+' : ''}{item.target3.toFixed(1)}%</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div className="signal-stats">
-                  <span className={`signal-stat ${item.fundingRate > 0 ? 'neg' : 'pos'}`}>
-                    Funding: {(item.fundingRate * 100).toFixed(4)}%
-                  </span>
-                  <span className={`signal-stat ${item.priceChange >= 0 ? 'pos' : 'neg'}`}>
-                    {item.priceChange > 0 ? '+' : ''}{item.priceChange.toFixed(2)}%
-                  </span>
-                  {item.direction !== 'NEUTRAL' && (
-                    <>
-                      <span className="signal-stat pos">T1: {item.target1 > 0 ? '+' : ''}{item.target1.toFixed(1)}%</span>
-                      <span className="signal-stat pos">T2: {item.target2 > 0 ? '+' : ''}{item.target2.toFixed(1)}%</span>
-                      <span className="signal-stat pos">T3: {item.target3 > 0 ? '+' : ''}{item.target3.toFixed(1)}%</span>
-                    </>
-                  )}
-                </div>
-              </div>
-            ))}
-          </>
-        )}
-        {!scanner.fundingExtremeLoading && (!scanner.fundingExtremeData?.symbols || scanner.fundingExtremeData.symbols.length === 0) && (
-          <p className="empty">{isRTL ? 'سیگنالی یافت نشد' : 'No funding extreme signals found'}</p>
-        )}
+              ))}
+            </>
+          )}
+          {!scanner.fundingExtremeLoading && (!scanner.fundingExtremeData?.symbols || scanner.fundingExtremeData.symbols.length === 0) && (
+            <p className="py-8 text-slate-400 text-center">{isRTL ? 'سیگنالی یافت نشد' : 'No funding extreme signals found'}</p>
+          )}
+        </div>
       </div>
     );
   }
@@ -593,7 +602,7 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
 
   return (
     <>
-      <div className="signals-page">
+      <div className="bg-gradient-to-br from-[#0a0e17] via-[#0f172a] to-[#0a0e17] min-h-screen">
         <SignalsHeader
           isRTL={isRTL}
           activeTab={scanner.activeTab}
@@ -605,7 +614,7 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
           onToggleReliable={handleToggleReliable}
         />
         <SignalsTabs activeTab={scanner.activeTab} isRTL={isRTL} onTabChange={setActiveTab} />
-        <VolumeMarketCapPanel />
+        {/* <VolumeMarketCapPanel /> */}
         {renderTabContent()}
       </div>
       {newsSymbol && (

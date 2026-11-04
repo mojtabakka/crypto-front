@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 import { useI18n } from '../i18n';
 import { useExchange } from '../contexts/ExchangeContext';
 import { Loading } from '../components/Loading';
-import './CoinGlassSignalsPage.css';
 
 interface CoinGlassSymbolData {
   symbol: string;

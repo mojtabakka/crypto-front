@@ -2,7 +2,6 @@ import { useEffect, useCallback } from 'react';
 import type { NewsItem } from '../api/market/market';
 import { useI18n } from '../i18n';
 import { Button } from './Button';
-import './NewsModal.css';
 
 interface NewsModalProps {
     item: NewsItem | null;

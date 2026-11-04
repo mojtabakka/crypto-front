@@ -9,7 +9,6 @@ import type {
   ProtocolDeepDive,
   ProtocolHealthScore,
 } from '../types/protocol-analysis';
-import './ProtocolAnalysisPage.css';
 
 const VERDICT_TONE: Record<ProtocolHealthScore['verdict'], string> = {
   STRONG_BUY: 'strong-buy',
@@ -582,7 +581,7 @@ export function ProtocolAnalysisPage() {
             </Section>
 
             <Section title={isRTL ? 'امتیاز سلامت' : 'Health Score'} icon="🎯">
-              <div className="pa-subscores pa-subscores-grid">
+              <div className="pa-subscores-grid pa-subscores">
                 <SubScoreBar
                   value={data.healthScore.tvlStrength}
                   label={isRTL ? 'TVL' : 'TVL'}

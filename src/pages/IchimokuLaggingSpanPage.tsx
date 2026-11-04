@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { useI18n } from '../i18n';
 import { Loading } from '../components/Loading';
+import { Button } from '../components/Button';
+import { SelectDropdown } from '../components/SelectDropdown';
 import { fetchIchimokuLaggingSpanScan } from '../api/ichimoku-lagging-span/ichimoku-lagging-span';
 import type {
   IchimokuLaggingSpanScanResult,
   IchimokuLaggingSpanSignal,
 } from '../types/ichimoku';
-import './IchimokuLaggingSpanPage.css';
 
-const INTERVAL_OPTIONS: { value: string; label: string }[] = [
+const INTERVAL_OPTIONS = [
   { value: '1d', label: '۱ روز (1D)' },
   { value: '4h', label: '۴ ساعت (4H)' },
   { value: '1w', label: '۱ هفته (1W)' },
@@ -22,6 +23,8 @@ function fmtUsd(value: number): string {
 }
 
 function fmt(value: number): string {
+  if (Math.abs(value) >= 1000) return value.toFixed(0);
+  if (Math.abs(value) >= 1) return value.toFixed(2);
   return value.toFixed(4);
 }
 
@@ -55,111 +58,114 @@ export function IchimokuLaggingSpanPage() {
   if (isLoading && !data) return <Loading isRTL={isRTL} />;
   if (error && !data) {
     return (
-      <div className="ichimoku-lagging-page">
-        <div className="page-header">
-          <h1>{isRTL ? 'خروج لینگ-span از کندل‌ها' : 'Ichimoku Lagging Span Exit'}</h1>
-        </div>
-        <div className="error-state">
-          <p style={{ color: '#ef4444', fontWeight: 600, marginBottom: '12px' }}>
-            {error}
-          </p>
-          <button onClick={handleScan} className="scan-btn">
-            {isRTL ? 'تلاش مجدد' : 'Retry'}
-          </button>
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#0f172a] to-[#0a0e17] p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
+              {isRTL ? 'خروج لینگ-span از کندل‌ها' : 'Ichimoku Lagging Span Exit'}
+            </h1>
+          </div>
+          <div className="bg-slate-800/50 backdrop-blur-xl border border-red-500/30 rounded-2xl p-12 text-center">
+            <p className="text-red-400 font-semibold mb-4">{error}</p>
+            <Button onClick={handleScan} variant="primary">{isRTL ? 'تلاش مجدد' : 'Retry'}</Button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`ichimoku-lagging-page ${isRTL ? 'rtl' : ''}`}>
-      <div className="page-header">
-        <h1>
-          {isRTL ? 'اسکنر خروج لینگ-span (چیکو) از کندل‌ها' : 'Ichimoku Lagging Span (Chikou) Exit Scanner'}
-        </h1>
-        <p className="page-subtitle">
-          {isRTL
-            ? 'لینگ-span اخرین بار به صورت صعودی از بالای کندل‌ها خارج شده است'
-            : 'Lagging Span most recently exited upward from price candles'}
-        </p>
-        <div className="header-actions">
-          <label className="vmc-control">
-            <span>{isRTL ? 'تایم‌فریم' : 'Timeframe'}</span>
-            <select
-              value={interval}
-              onChange={(e) => setInterval(e.target.value)}
-              style={{ padding: '4px 6px', fontSize: '13px' }}
-            >
-              {INTERVAL_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button onClick={handleScan} className="scan-btn" disabled={isLoading}>
-            {isLoading ? (isRTL ? 'در حال اسکن...' : 'Scanning...') : (isRTL ? 'اسکن ارزها' : 'Scan Symbols')}
-          </button>
-        </div>
-      </div>
-
-      {data && (
-        <>
-          <div className="scan-summary">
-            <div className="summary-card">
-              <h3>📊 {isRTL ? 'ارزهای بررسی شده' : 'Scanned'}</h3>
-              <div className="summary-value">{data.totalScanned}</div>
-            </div>
-            <div className="summary-card buy-summary">
-              <h3>🟢 {isRTL ? 'سیگنال خروج لینگ-span' : 'Lagging Span Exit Signals'}</h3>
-              <div className="summary-value">{matches.length}</div>
-            </div>
-            <div className="summary-card">
-              <h3>⏱ {isRTL ? 'تایم‌فریم' : 'Timeframe'}</h3>
-              <div className="summary-value">{interval}</div>
-            </div>
+    <div className={`min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#0f172a] to-[#0a0e17] p-6 ${isRTL ? 'rtl' : ''}`}>
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
+              {isRTL ? 'اسکنر خروج لینگ-span (چیکو) از کندل‌ها' : 'Ichimoku Lagging Span (Chikou) Exit Scanner'}
+            </h1>
+            <p className="text-slate-400">
+              {isRTL
+                ? 'لینگ-span اخرین بار به صورت صعودی از بالای کندل‌ها خارج شده است'
+                : 'Lagging Span most recently exited upward from price candles'}
+            </p>
           </div>
+          <div className="flex flex-wrap items-center gap-3 bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-xl p-3">
+            <SelectDropdown options={INTERVAL_OPTIONS} value={interval} onChange={setInterval} label={isRTL ? 'تایم‌فریم' : 'Timeframe'} />
+            <Button onClick={handleScan} variant="primary" disabled={isLoading}>
+              {isLoading ? (isRTL ? 'در حال اسکن...' : 'Scanning...') : (isRTL ? 'اسکن ارزها' : 'Scan Symbols')}
+            </Button>
+          </div>
+        </div>
 
-          {matches.length === 0 ? (
-            <div className="empty-state">
-              <p>
-                {isRTL
-                  ? 'ارزی با شرایط خروج لینگ-span از کندل‌ها یافت نشد'
-                  : 'No coins match Ichimoku Lagging Span exit conditions'}
-              </p>
+        {data && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-xl p-5">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-xl">📊</div>
+                  <h3 className="text-sm text-slate-400">{isRTL ? 'ارزهای بررسی شده' : 'Scanned'}</h3>
+                </div>
+                <div className="text-2xl font-bold text-slate-100">{data.totalScanned}</div>
+              </div>
+              <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 backdrop-blur-xl border border-green-500/30 rounded-xl p-5">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center text-xl">🟢</div>
+                  <h3 className="text-sm text-green-400">{isRTL ? 'سیگنال خروج لینگ-span' : 'Lagging Span Exit Signals'}</h3>
+                </div>
+                <div className="text-2xl font-bold text-green-400">{matches.length}</div>
+              </div>
+              <div className="bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-xl p-5">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center text-xl">⏱</div>
+                  <h3 className="text-sm text-slate-400">{isRTL ? 'تایم‌فریم' : 'Timeframe'}</h3>
+                </div>
+                <div className="text-2xl font-bold text-slate-100 uppercase">{interval}</div>
+              </div>
             </div>
-          ) : (
-            <div className="table-wrapper">
-              <table className="ichimoku-lagging-table">
-                <thead>
-                  <tr>
-                    <th>{isRTL ? 'نماد' : 'Symbol'}</th>
-                    <th>{isRTL ? 'قیمت' : 'Price'}</th>
-                    <th>{isRTL ? 'مقدار لینگ-span' : 'Chikou Value'}</th>
-                    <th>{isRTL ? 'قیمت کندل عبور' : 'Cross Candle High'}</th>
-                    <th>{isRTL ? 'چند روز قبل' : 'Bars Ago'}</th>
-                    <th>{isRTL ? 'وضعیت' : 'Status'}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {matches.map((s) => (
-                    <tr key={s.symbol} className="signal-row buy-row">
-                      <td className="symbol-cell">{s.symbol}</td>
-                      <td>{fmtUsd(s.price)}</td>
-                      <td>{fmt(s.chikouValue)}</td>
-                      <td>{fmtUsd(s.crossPriceHigh)}</td>
-                      <td>{barsAgoLabel(isRTL, s.barsAgo)}</td>
-                      <td>
-                        <span className="signal-badge buy">{isRTL ? 'خرید' : 'BUY'}</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </>
-      )}
+
+            {matches.length === 0 ? (
+              <div className="bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-12 text-center">
+                <div className="text-6xl mb-4">☁️</div>
+                <p className="text-slate-400">
+                  {isRTL ? 'ارزی با شرایط خروج لینگ-span از کندل‌ها یافت نشد' : 'No coins match Ichimoku Lagging Span exit conditions'}
+                </p>
+              </div>
+            ) : (
+              <div className="bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-2xl overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-slate-900/60">
+                      <tr>
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">{isRTL ? 'نماد' : 'Symbol'}</th>
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">{isRTL ? 'قیمت' : 'Price'}</th>
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">{isRTL ? 'مقدار لینگ-span' : 'Chikou Value'}</th>
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">{isRTL ? 'قیمت کندل عبور' : 'Cross Candle High'}</th>
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">{isRTL ? 'چند روز قبل' : 'Bars Ago'}</th>
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">{isRTL ? 'وضعیت' : 'Status'}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-700/50">
+                      {matches.map((s) => (
+                        <tr key={s.symbol} className="hover:bg-slate-700/30 transition-colors">
+                          <td className="px-6 py-4 text-sm font-semibold text-slate-100">{s.symbol}</td>
+                          <td className="px-6 py-4 text-sm text-slate-200">{fmtUsd(s.price)}</td>
+                          <td className="px-6 py-4 text-sm text-slate-400">{fmt(s.chikouValue)}</td>
+                          <td className="px-6 py-4 text-sm text-slate-400">{fmtUsd(s.crossPriceHigh)}</td>
+                          <td className="px-6 py-4 text-sm text-slate-400">{barsAgoLabel(isRTL, s.barsAgo)}</td>
+                          <td className="px-6 py-4">
+                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-500/10 text-green-400 border border-green-500/30">
+                              {isRTL ? 'خرید' : 'BUY'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

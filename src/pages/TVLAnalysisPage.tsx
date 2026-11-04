@@ -4,7 +4,6 @@ import { useTVLData } from '../hooks/useTVLData';
 import { Loading } from '../components/Loading';
 import { ExchangeBadge } from '../components/ExchangeBadge';
 import type { TVLAnalysisResult, TVLTab, TVLTabConfig } from '../types/tvl-analysis';
-import './TVLAnalysisPage.css';
 
 const TABS: TVLTabConfig[] = [
   { key: 'top-opportunities', label: 'Top Opportunities', icon: '🎯' },

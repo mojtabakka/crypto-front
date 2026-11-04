@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import type { ExchangeName } from '../api/market/market';
 import { ExchangeLogo } from './ExchangeLogo';
-import './ExchangeDropdown.css';
 
 interface ExchangeDropdownProps {
   selected: ExchangeName;
@@ -39,14 +38,14 @@ export function ExchangeDropdown({ selected, onChange }: ExchangeDropdownProps) 
   }, []);
 
   return (
-    <div className="exchange-dropdown header-control" ref={dropdownRef}>
+    <div className="relative" ref={dropdownRef}>
       <button
-        className="exchange-dropdown-trigger"
+        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface/60 border border-border-subtle text-sm text-text-primary hover:bg-surface/80 transition-colors"
         onClick={() => setOpen(!open)}
         type="button"
       >
         <ExchangeLogo exchange={current.value} size={20} />
-        <span className="exchange-dropdown-label">{current.label}</span>
+        <span>{current.label}</span>
         <svg
           width="12"
           height="12"
@@ -54,18 +53,18 @@ export function ExchangeDropdown({ selected, onChange }: ExchangeDropdownProps) 
           fill="none"
           stroke="currentColor"
           strokeWidth="2"
-          className={`exchange-dropdown-arrow ${open ? 'open' : ''}`}
+          className={`transition-transform ${open ? 'rotate-180' : ''}`}
         >
           <polyline points="6 9 12 15 18 9" />
         </svg>
       </button>
 
       {open && (
-        <div className="exchange-dropdown-menu">
+        <div className="absolute right-0 mt-2 w-48 bg-[#0f172a]/95 backdrop-blur-xl border border-border-subtle rounded-xl shadow-xl overflow-hidden z-50">
           {EXCHANGES.map((ex) => (
             <button
               key={ex.value}
-              className={`exchange-dropdown-item ${selected === ex.value ? 'active' : ''}`}
+              className={`w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-surface/60 transition-colors ${selected === ex.value ? 'bg-surface/40 text-primary' : 'text-text-primary'}`}
               onClick={() => {
                 onChange(ex.value);
                 setOpen(false);
@@ -73,7 +72,7 @@ export function ExchangeDropdown({ selected, onChange }: ExchangeDropdownProps) 
               type="button"
             >
               <ExchangeLogo exchange={ex.value} size={20} />
-              <span>{ex.label}</span>
+              <span className="flex-1 text-left">{ex.label}</span>
               {selected === ex.value && (
                 <svg
                   width="14"
@@ -82,7 +81,6 @@ export function ExchangeDropdown({ selected, onChange }: ExchangeDropdownProps) 
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2.5"
-                  className="exchange-dropdown-check"
                 >
                   <polyline points="20 6 9 17 4 12" />
                 </svg>

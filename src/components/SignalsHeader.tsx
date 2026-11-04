@@ -23,17 +23,23 @@ export function SignalsHeader({
   onToggleReliable,
 }: SignalsHeaderProps) {
   return (
-    <div className="signals-header">
+    <div className="flex flex-wrap items-center gap-3 bg-slate-900/60 backdrop-blur-xl px-4 py-3 border-slate-700/50 border-b">
       <Button variant="ghost" size="sm" onClick={onBack}>
         ← {isRTL ? 'بازگشت' : 'Back'}
       </Button>
-      <h2>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle', marginRight: '8px' }}>
+      <div className="flex flex-1 items-center gap-2 bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 font-bold text-transparent text-xl">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="url(#grad)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <defs>
+            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#60a5fa" />
+              <stop offset="100%" stopColor="#a78bfa" />
+            </linearGradient>
+          </defs>
           <path d="M3 3v18h18"/>
           <path d="M7 16l4-4 4 4 5-5"/>
         </svg>
         {isRTL ? 'سیگنال‌های بازار' : 'Market Signals'}
-      </h2>
+      </div>
       <ExchangeBadge />
       <Button variant="ghost" size="sm" onClick={onRefresh} disabled={isLoading}>
         🔄

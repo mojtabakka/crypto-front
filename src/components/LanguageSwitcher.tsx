@@ -1,25 +1,16 @@
 import { useI18n } from '../i18n';
-import { Button } from './Button';
-import './LanguageSwitcher.css';
 
 export function LanguageSwitcher() {
-  const { toggleLocale, isRTL } =
-    useI18n();
+  const { toggleLocale, isRTL } = useI18n();
 
   return (
-    <Button
-      className="header-control language-switcher"
-      variant="ghost"
-      size="sm"
+    <button
+      className="px-3 py-1.5 rounded-lg bg-surface/60 border border-border-subtle text-sm text-text-primary hover:bg-surface/80 transition-colors flex items-center gap-1.5"
       onClick={toggleLocale}
-      title={
-        isRTL
-          ? 'Switch to English'
-          : 'تغییر به فارسی'
-      }
-      icon={<span className="lang-icon">{isRTL ? '🇬🇧' : '🇮🇷'}</span>}
+      title={isRTL ? 'Switch to English' : 'تغییر به فارسی'}
     >
-      {isRTL ? 'EN' : 'FA'}
-    </Button>
+      <span>{isRTL ? '🇬🇧' : '🇮🇷'}</span>
+      <span>{isRTL ? 'EN' : 'FA'}</span>
+    </button>
   );
 }

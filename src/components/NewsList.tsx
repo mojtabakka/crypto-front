@@ -1,10 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useNews } from '../hooks/useNews';
 import { useI18n } from '../i18n';
 import type { NewsItem } from '../api/market/market';
-import { translateNewsItem } from '../utils/translator';
 import { NewsModal } from './NewsModal';
-import './NewsList.css';
 
 interface NewsListProps {
     symbol?: string;
