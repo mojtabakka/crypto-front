@@ -60,7 +60,7 @@ export function CoinGlassSignalsPage() {
 
   if (isLoading) return <Loading isRTL={isRTL} />;
   if (isError) {
-    const errorMsg = error instanceof Error ? error.message : 'خطا در بارگذاری سیگنال‌های کوین گلاس';
+    const errorMsg = error instanceof Error ? error.message : isRTL ? 'خطا در بارگذاری سیگنال‌های کوین گلاس' : 'Failed to load CoinGlass signals';
     return (
       <div className="coinglass-page">
         <div className="page-header">

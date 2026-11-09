@@ -27,6 +27,9 @@ import { IchimokuScannerPage } from './pages/IchimokuScannerPage';
 import { IchimokuLaggingSpanPage } from './pages/IchimokuLaggingSpanPage';
 import { IchimokuCombinedPage } from './pages/IchimokuCombinedPage';
 import { CoinGlassSignalsPage } from './pages/CoinGlassSignalsPage';
+import { LoginPage } from './pages/LoginPage';
+import { SignUpPage } from './pages/SignUpPage';
+import { UserManagementPage } from './pages/UserManagementPage';
 import { MarketSummary } from './components/MarketSummary';
 import { VolumeChart } from './components/VolumeChart';
 import { OpenInterestChart } from './components/OpenInterestChart';
@@ -41,6 +44,8 @@ import { VolumeProfileTab } from './components/VolumeProfileTab';
 import { ExchangeDropdown } from './components/ExchangeDropdown';
 import { useI18n } from './i18n';
 import { useExchange } from './contexts/ExchangeContext';
+import { useAuth } from './contexts/AuthContext';
+import { RoleGuard } from './components/AuthGuard';
 import './App.css';
 import './components/MarketControls.css';
 import './components/NewsList.css';
@@ -64,7 +69,7 @@ import './pages/IchimokuCombinedPage.css';
 import './pages/PressureScanPage.css';
 import './pages/VolumeMarketCapPage.css';
 
-type Page = 'home' | 'detail' | 'signals' | 'watchlist' | 'four-hour-signals' | 'long-short-signals' | 'volume-profile' | 'new-listings' | 'logs' | 'pump-detector' | 'dump-detector' | 'pre-move-detector' | 'safe-sell' | 'tvl-analysis' | 'protocol-analysis' | 'coinglass-signals' | 'volume-marketcap' | 'pressure-scan' | 'ichimoku-scanner' | 'ichimoku-lagging-span' | 'ichimoku-combined';
+type Page = 'home' | 'detail' | 'signals' | 'watchlist' | 'four-hour-signals' | 'long-short-signals' | 'volume-profile' | 'new-listings' | 'logs' | 'pump-detector' | 'dump-detector' | 'pre-move-detector' | 'safe-sell' | 'tvl-analysis' | 'protocol-analysis' | 'coinglass-signals' | 'volume-marketcap' | 'pressure-scan' | 'ichimoku-scanner' | 'ichimoku-lagging-span' | 'ichimoku-combined' | 'login' | 'signup' | 'user-management';
 type TabId = 'charts' | 'signals' | 'news' | 'events' | 'tradingview-news' | 'important-news' | 'volume-profile';
 
 interface TradingViewNewsItem {
@@ -210,11 +215,53 @@ function ImportantNews({ isRTL }: { isRTL: boolean }) {
     );
 }
 
+function PageLanguageToggle({ page }: { page: Page }) {
+    // Pages that already render the switcher inside their own header.
+    if (
+        page === 'home' ||
+        page === 'detail' ||
+        page === 'login' ||
+        page === 'signup' ||
+        page === 'user-management'
+    ) return null;
+    return (
+        <div className="global-lang-toggle">
+            <LanguageSwitcher />
+        </div>
+    );
+}
+
 function App() {
     const { t, isRTL } = useI18n();
+    const { user, token, isLoading: authIsLoading, checkSession, logout } = useAuth();
     useScanNotification();
 
+    // Check session on mount
+    useEffect(() => {
+        if (token) {
+            checkSession().catch(() => logout());
+        }
+    }, [token, checkSession, logout]);
+
+    const publicPaths = ['/login', '/signup'];
+    const isPublicPath = publicPaths.includes(window.location.pathname);
+
+    // Redirect unauthenticated visitors to /login, and signed-in users away
+    // from the auth pages. Navigation must happen in an effect, not in render.
+    useEffect(() => {
+        if (authIsLoading) return;
+
+        if (user && token && isPublicPath) {
+            window.location.href = '/';
+        } else if (!user && !token && !isPublicPath) {
+            window.location.href = '/login';
+        }
+    }, [authIsLoading, user, token, isPublicPath]);
+
     const getPageFromUrl = (): Page => {
+        if (window.location.pathname === '/login') return 'login';
+        if (window.location.pathname === '/signup') return 'signup';
+        if (window.location.pathname === '/user-management') return 'user-management';
         if (window.location.pathname === '/signals') return 'signals';
         if (window.location.pathname === '/watchlist') return 'watchlist';
         if (window.location.pathname === '/four-hour-signals') return 'four-hour-signals';
@@ -287,6 +334,12 @@ function App() {
                 setPage('ichimoku-lagging-span');
             } else if (window.location.pathname === '/ichimoku-combined') {
                 setPage('ichimoku-combined');
+            } else if (window.location.pathname === '/login') {
+                setPage('login');
+            } else if (window.location.pathname === '/signup') {
+                setPage('signup');
+            } else if (window.location.pathname === '/user-management') {
+                setPage('user-management');
             } else {
                 setPage('home');
             }
@@ -475,6 +528,11 @@ function App() {
 
     const { blockCount } = useExchangeBlockNotifier();
 
+    // Auth gates live below every hook so hook order stays identical on each
+    // render (returning early above them crashed React when loading finished).
+    if (authIsLoading) return null;
+    if (!user && !token && !isPublicPath) return null;
+
     if (blockCount > 0) {
         return (
             <>
@@ -541,6 +599,7 @@ function App() {
         return (
             <>
                 <Toaster />
+                <PageLanguageToggle page={page} />
                 <div className="app-container">
                 <div className="app-header">
                     <div className="header-content">
@@ -559,6 +618,31 @@ function App() {
                                 onChange={setExchange}
                                 isRTL={isRTL}
                             />
+                            {user ? (
+                                <div className="header-user" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: '16px', paddingLeft: '16px', borderLeft: '1px solid #334155' }}>
+                                    <span style={{ fontSize: '13px', color: '#94a3b8' }}>{user.username}</span>
+                                    <span style={{ fontSize: '11px', fontWeight: 600, padding: '2px 8px', borderRadius: '10px', background: user.role === 'admin' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(59, 130, 246, 0.15)', color: user.role === 'admin' ? '#fca5a5' : '#93c5fd' }}>
+                                        {user.role}
+                                    </span>
+                                    {/* Admin-only entry point, sits beside Sign Out. */}
+                                    {user.role === 'admin' && (
+                                        <Button
+                                            variant="purple"
+                                            size="sm"
+                                            onClick={() => { window.location.href = '/user-management'; }}
+                                        >
+                                            {isRTL ? '👥 مدیریت کاربران' : '👥 Manage Users'}
+                                        </Button>
+                                    )}
+                                    <Button variant="ghost" size="sm" onClick={() => { logout(); window.location.href = '/'; }}>
+                                        {isRTL ? 'خروج' : 'Sign Out'}
+                                    </Button>
+                                </div>
+                            ) : (
+                                <Button variant="ghost" size="sm" onClick={() => { window.location.href = '/login'; }}>
+                                    {isRTL ? 'ورود' : 'Sign In'}
+                                </Button>
+                            )}
                         </div>
                     </div>
                     <FuturesSymbolsButton />
@@ -778,6 +862,7 @@ function App() {
         return (
             <>
                 <Toaster />
+                <PageLanguageToggle page={page} />
                 <SignalsPage
                     onSelectSymbol={handleSearch}
                     onBack={handleBackFromPullbacks}
@@ -790,6 +875,7 @@ function App() {
         return (
             <>
                 <Toaster />
+                <PageLanguageToggle page={page} />
                 <WatchlistPage
                     onSelectSymbol={handleSearch}
                     onBack={handleBackFromWatchlist}
@@ -802,6 +888,7 @@ function App() {
         return (
             <>
                 <Toaster />
+                <PageLanguageToggle page={page} />
                 <FourHourSignalsPage
                     onSelectSymbol={handleSearch}
                     onBack={handleBackFromFourHourSignals}
@@ -814,6 +901,7 @@ function App() {
         return (
             <>
                 <Toaster />
+                <PageLanguageToggle page={page} />
                 <LongShortSignalsPage />
             </>
         );
@@ -823,6 +911,7 @@ function App() {
         return (
             <>
                 <Toaster />
+                <PageLanguageToggle page={page} />
                 <VolumeProfilePage />
             </>
         );
@@ -832,7 +921,40 @@ function App() {
         return (
             <>
                 <Toaster />
+                <PageLanguageToggle page={page} />
                 <NewListingsPage />
+            </>
+        );
+    }
+
+    if (page === 'login') {
+        return (
+            <>
+                <Toaster />
+                <PageLanguageToggle page={page} />
+                <LoginPage />
+            </>
+        );
+    }
+
+    if (page === 'signup') {
+        return (
+            <>
+                <Toaster />
+                <PageLanguageToggle page={page} />
+                <SignUpPage />
+            </>
+        );
+    }
+
+    if (page === 'user-management') {
+        return (
+            <>
+                <Toaster />
+                <PageLanguageToggle page={page} />
+                <RoleGuard allowedRoles={['admin']}>
+                    <UserManagementPage />
+                </RoleGuard>
             </>
         );
     }
@@ -841,6 +963,7 @@ function App() {
         return (
             <>
                 <Toaster />
+                <PageLanguageToggle page={page} />
                 <LogsPage />
             </>
         );
@@ -850,6 +973,7 @@ function App() {
         return (
             <>
                 <Toaster />
+                <PageLanguageToggle page={page} />
                 <PumpDetectorPage />
             </>
         );
@@ -859,6 +983,7 @@ function App() {
         return (
             <>
                 <Toaster />
+                <PageLanguageToggle page={page} />
                 <DumpDetectorPage />
             </>
         );
@@ -868,6 +993,7 @@ function App() {
         return (
             <>
                 <Toaster />
+                <PageLanguageToggle page={page} />
                 <PreMoveDetectorPage />
             </>
         );
@@ -877,6 +1003,7 @@ function App() {
         return (
             <>
                 <Toaster />
+                <PageLanguageToggle page={page} />
                 <SafeSellPage />
             </>
         );
@@ -886,6 +1013,7 @@ function App() {
         return (
             <>
                 <Toaster />
+                <PageLanguageToggle page={page} />
                 <TVLAnalysisPage />
             </>
         );
@@ -895,6 +1023,7 @@ function App() {
         return (
             <>
                 <Toaster />
+                <PageLanguageToggle page={page} />
                 <ProtocolAnalysisPage />
             </>
         );
@@ -904,6 +1033,7 @@ function App() {
         return (
             <>
                 <Toaster />
+                <PageLanguageToggle page={page} />
                 <CoinGlassSignalsPage />
             </>
         );
@@ -913,6 +1043,7 @@ function App() {
         return (
             <>
                 <Toaster />
+                <PageLanguageToggle page={page} />
                 <PressureScanPage />
             </>
         );
@@ -922,6 +1053,7 @@ function App() {
         return (
             <>
                 <Toaster />
+                <PageLanguageToggle page={page} />
                 <VolumeMarketCapPage />
             </>
         );
@@ -931,6 +1063,7 @@ function App() {
         return (
             <>
                 <Toaster />
+                <PageLanguageToggle page={page} />
                 <IchimokuScannerPage />
             </>
         );
@@ -940,6 +1073,7 @@ function App() {
         return (
             <>
                 <Toaster />
+                <PageLanguageToggle page={page} />
                 <IchimokuLaggingSpanPage />
             </>
         );
@@ -949,6 +1083,7 @@ function App() {
         return (
             <>
                 <Toaster />
+                <PageLanguageToggle page={page} />
                 <IchimokuCombinedPage />
             </>
         );
@@ -1034,6 +1169,7 @@ function App() {
     return (
         <>
             <Toaster />
+                <PageLanguageToggle page={page} />
             <div className="detail-page">
             <div className="detail-header">
                 <div className="detail-header-controls">

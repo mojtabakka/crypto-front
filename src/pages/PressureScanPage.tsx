@@ -78,7 +78,7 @@ export function PressureScanPage() {
 
   if (isLoading) return <Loading isRTL={isRTL} />;
   if (isError) {
-    const errorMsg = error instanceof Error ? error.message : 'خطا در بارگذاری';
+    const errorMsg = error instanceof Error ? error.message : isRTL ? 'خطا در بارگذاری' : 'Failed to load';
     return (
       <div className="pressure-page">
         <div className="page-header">

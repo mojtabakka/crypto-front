@@ -5,10 +5,10 @@ import { fetchIchimokuScan } from '../api/ichimoku-scanner/ichimoku';
 import type { IchimokuScanResult, IchimokuSignal } from '../types/ichimoku';
 import './IchimokuScannerPage.css';
 
-const INTERVAL_OPTIONS: { value: string; label: string }[] = [
-  { value: '1d', label: '۱ روز (1D)' },
-  { value: '4h', label: '۴ ساعت (4H)' },
-  { value: '1w', label: '۱ هفته (1W)' },
+const INTERVAL_OPTIONS: { value: string; label: { fa: string; en: string } }[] = [
+  { value: '1d', label: { fa: '۱ روز (1D)', en: '1 Day (1D)' } },
+  { value: '4h', label: { fa: '۴ ساعت (4H)', en: '4 Hours (4H)' } },
+  { value: '1w', label: { fa: '۱ هفته (1W)', en: '1 Week (1W)' } },
 ];
 
 function fmtUsd(value: number): string {
@@ -37,7 +37,7 @@ export function IchimokuScannerPage() {
       const result = await fetchIchimokuScan({ interval });
       setData(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'خطا در بارگذاری');
+      setError(err instanceof Error ? err.message : isRTL ? 'خطا در بارگذاری' : 'Failed to load');
     } finally {
       setIsLoading(false);
     }
@@ -78,7 +78,7 @@ export function IchimokuScannerPage() {
             >
               {INTERVAL_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
-                  {opt.label}
+                  {isRTL ? opt.label.fa : opt.label.en}
                 </option>
               ))}
             </select>

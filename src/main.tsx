@@ -14,6 +14,7 @@ import {
 import App from './App';
 import { I18nProvider } from './i18n/I18nProvider';
 import { ExchangeProvider } from './contexts/ExchangeContext';
+import { AuthProvider } from './contexts/AuthContext';
 
 import './index.css';
 
@@ -29,7 +30,9 @@ createRoot(
     >
       <I18nProvider>
         <ExchangeProvider>
-          <App />
+          <AuthProvider>
+            <App />
+          </AuthProvider>
         </ExchangeProvider>
       </I18nProvider>
     </QueryClientProvider>

@@ -2,3 +2,22 @@
   font-size: 16px;
   line-height: 1;
 }
+
+/* Floating fallback for pages whose header has no switcher of its own. */
+.global-lang-toggle {
+  position: fixed;
+  bottom: 18px;
+  left: 18px;
+  z-index: 9980;
+  display: flex;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.85);
+  border-radius: 10px;
+  padding: 2px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
+}
+
+.global-lang-toggle .header-control {
+  border-color: rgba(148, 163, 184, 0.35);
+}

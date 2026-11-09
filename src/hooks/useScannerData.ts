@@ -728,6 +728,5 @@ export function useScannerData(options: UseScannerDataOptions) {
     shorts4hLoading,
     shorts1hLoading,
     shortsDailyLoading,
-    btcCandlesLoading,
   };
 }

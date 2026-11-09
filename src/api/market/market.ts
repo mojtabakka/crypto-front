@@ -23,7 +23,13 @@ export function getCurrentExchange(): ExchangeName {
     return isExchangeName(saved) ? saved : 'BINANCE';
 }
 
-import type { DojiCandlesResult, FundingVolumeSqueezeResult, BTCCandleResult } from '../types/market-scanner';
+import type {
+    DojiCandlesResult,
+    FundingVolumeSqueezeResult,
+    BTCCandleResult,
+    LiquidationClustersResult,
+    TrustedLongShortResult,
+} from '../../types/market-scanner';
 
 export interface MarketCandle {
     time: number;

@@ -64,7 +64,7 @@ export function LongShortSignalsPage() {
 
   if (isLoading) return <Loading isRTL={isRTL} />;
   if (isError) {
-    const errorMsg = error instanceof Error ? error.message : 'خطا در بارگذاری سیگنال‌ها';
+    const errorMsg = error instanceof Error ? error.message : isRTL ? 'خطا در بارگذاری سیگنال‌ها' : 'Failed to load signals';
     return (
       <div className="long-short-signals-page">
         <div className="page-header">

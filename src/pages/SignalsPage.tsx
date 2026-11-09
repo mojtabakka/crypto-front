@@ -112,9 +112,9 @@ export function SignalsPage({ onSelectSymbol, onBack }: SignalsPageProps) {
                 ))}
               </div>
               {currentShorts.loading && <Loading isRTL={isRTL} />}
-              {!currentShorts.loading && currentShorts.data?.shorts.length > 0 && (
+              {!currentShorts.loading && (currentShorts.data?.shorts?.length ?? 0) > 0 && (
                 <>
-                  {currentShorts.data.shorts.map((item, i) => (
+                  {(currentShorts.data?.shorts ?? []).map((item, i) => (
                     <SignalRow
                       key={item.symbol}
                       item={item}

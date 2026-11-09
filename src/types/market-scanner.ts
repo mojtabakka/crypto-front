@@ -1,5 +1,12 @@
 export type ScannerTab =
   | 'signals'
+  | 'reliable'
+  | 'shorts'
+  | 'fake-signals'
+  | 'trusted-long-short'
+  | 'doji-candles'
+  | 'funding-volume-squeeze'
+  | 'btc-candles'
   | 'pullbacks'
   | 'reapproach'
   | 'weekly-pullbacks'
