@@ -1,12 +1,6 @@
-import { Toaster, toast } from 'react-hot-toast';
-import { useExchangeBlockNotifier } from './hooks/useExchangeBlockNotifier';
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useMarketData } from './hooks/useMarketData';
-import { useOpenInterest } from './hooks/useOpenInterest';
-import { useFundingRate } from './hooks/useFundingRate';
-import { useEvents } from './hooks/useEvents';
+import { Toaster } from 'react-hot-toast';
 import { useScanNotification } from './hooks/useScanNotification';
+<<<<<<< HEAD
 import { HomePage } from './pages/HomePage';
 import { SignalsPage } from './pages/SignalsPage';
 import { WatchlistPage } from './pages/WatchlistPage';
@@ -214,6 +208,12 @@ function ImportantNews({ isRTL }: { isRTL: boolean }) {
         </div>
     );
 }
+=======
+import { useExchangeBlockNotifier } from './hooks/useExchangeBlockNotifier';
+import { ExchangeBlockedOverlay } from './components/app/ExchangeBlockedOverlay';
+import { AppRoutes } from './routes';
+import './App.css';
+>>>>>>> 90101238115694efe82a413bdbdb3c1860bdeff8
 
 function PageLanguageToggle({ page }: { page: Page }) {
     // Pages that already render the switcher inside their own header.
@@ -232,6 +232,7 @@ function PageLanguageToggle({ page }: { page: Page }) {
 }
 
 function App() {
+<<<<<<< HEAD
     const { t, isRTL } = useI18n();
     const { user, token, isLoading: authIsLoading, checkSession, logout } = useAuth();
     useScanNotification();
@@ -526,6 +527,9 @@ function App() {
         setPage('ichimoku-combined');
     }, []);
 
+=======
+    useScanNotification();
+>>>>>>> 90101238115694efe82a413bdbdb3c1860bdeff8
     const { blockCount } = useExchangeBlockNotifier();
 
     // Auth gates live below every hook so hook order stays identical on each
@@ -537,64 +541,12 @@ function App() {
         return (
             <>
                 <Toaster toastOptions={{ style: { zIndex: 10000 } }} />
-                <div style={{
-                    position: 'fixed',
-                    inset: 0,
-                    zIndex: 9000,
-                    background: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    pointerEvents: 'all',
-                    cursor: 'not-allowed',
-                }}>
-                    <div style={{
-                        background: '#1e293b',
-                        border: '2px solid #ef4444',
-                        borderRadius: '16px',
-                        padding: '32px 40px',
-                        textAlign: 'center',
-                        maxWidth: '450px',
-                        color: '#e2e8f0',
-                    }}>
-                        <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚫</div>
-                        <h2 style={{ margin: '0 0 12px 0', fontSize: '20px', color: '#fca5a5' }}>
-                            IP Rate Limited / Banned
-                        </h2>
-                        <p style={{ margin: '0 0 8px 0', fontSize: '14px', opacity: 0.8 }}>
-                            All features disabled — circuit breaker active ({blockCount} blocks)
-                        </p>
-                        <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#94a3b8' }}>
-                            Wait for automatic reset or click below to retry
-                        </p>
-                        <button
-                            onClick={async () => {
-                                try {
-                                    await fetch('http://localhost:3000/exchange/circuit-breakers/reset', { method: 'POST' });
-                                    window.location.reload();
-                                } catch {
-                                    toast.error('Failed to reset circuit breaker');
-                                }
-                            }}
-                            style={{
-                                background: '#ef4444',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '8px',
-                                padding: '10px 24px',
-                                fontSize: '14px',
-                                cursor: 'pointer',
-                                fontWeight: 600,
-                            }}
-                        >
-                            🔄 Try Reset Circuit Breaker
-                        </button>
-                    </div>
-                </div>
+                <ExchangeBlockedOverlay blockCount={blockCount} />
             </>
         );
     }
 
+<<<<<<< HEAD
     if (page === 'home') {
         return (
             <>
@@ -1450,6 +1402,9 @@ function App() {
         </div>
         </>
     );
+=======
+    return <AppRoutes />;
+>>>>>>> 90101238115694efe82a413bdbdb3c1860bdeff8
 }
 
 export default App;

@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 import { useI18n } from '../i18n';
 import { Loading } from '../components/Loading';
 import { ExchangeBadge } from '../components/ExchangeBadge';
-import './VolumeProfilePage.css';
 
 interface VolumeProfileData {
   poc: number;

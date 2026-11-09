@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query';
 import { useI18n } from '../i18n';
 import { Loading } from '../components/Loading';
 import { ExchangeBadge } from '../components/ExchangeBadge';
-import './FourHourSignalsPage.css';
 
 interface FourHourSignal {
   id: number;

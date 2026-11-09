@@ -4,7 +4,6 @@ import { useI18n } from '../i18n';
 import { Button } from '../components/Button';
 import { ExchangeBadge } from '../components/ExchangeBadge';
 import { Loading } from '../components/Loading';
-import './NewListingsPage.css';
 
 interface NewListing {
   id: number;

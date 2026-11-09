@@ -2,7 +2,6 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { searchProtocols } from '../api/protocol/protocol';
 import type { ProtocolSearchItem } from '../types/protocol-analysis';
-import './ProtocolSelector.css';
 
 interface ProtocolSelectorProps {
   selected: ProtocolSearchItem | null;

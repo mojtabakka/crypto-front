@@ -1,7 +1,6 @@
 import { useMarketSignal } from '../hooks/useMarketSignal';
 import { useI18n } from '../i18n';
 import type { ExchangeName } from '../api/market/market';
-import './MarketSignal.css';
 
 function getSignalColor(signal: string): string {
     switch (signal) {

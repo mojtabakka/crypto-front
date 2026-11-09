@@ -11,6 +11,8 @@ import {
   createRoot,
 } from 'react-dom/client';
 
+import { BrowserRouter } from 'react-router-dom';
+
 import App from './App';
 import { I18nProvider } from './i18n/I18nProvider';
 import { ExchangeProvider } from './contexts/ExchangeContext';
@@ -28,6 +30,7 @@ createRoot(
     <QueryClientProvider
       client={queryClient}
     >
+<<<<<<< HEAD
       <I18nProvider>
         <ExchangeProvider>
           <AuthProvider>
@@ -35,6 +38,15 @@ createRoot(
           </AuthProvider>
         </ExchangeProvider>
       </I18nProvider>
+=======
+      <BrowserRouter>
+        <I18nProvider>
+          <ExchangeProvider>
+            <App />
+          </ExchangeProvider>
+        </I18nProvider>
+      </BrowserRouter>
+>>>>>>> 90101238115694efe82a413bdbdb3c1860bdeff8
     </QueryClientProvider>
   </StrictMode>,
 );

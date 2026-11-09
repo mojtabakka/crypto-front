@@ -7,7 +7,6 @@ import { useStoredFuturesSymbols } from '../hooks/useFuturesSymbols';
 import { Button } from '../components/Button';
 import { ExchangeBadge } from '../components/ExchangeBadge';
 import { Loading } from '../components/Loading';
-import './SafeSellPage.css';
 
 interface SafeSellSignal {
   id: number;

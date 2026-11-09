@@ -1,0 +1,31 @@
+export type Page = 
+  | 'home' 
+  | 'detail' 
+  | 'signals' 
+  | 'watchlist' 
+  | 'four-hour-signals' 
+  | 'long-short-signals' 
+  | 'volume-profile' 
+  | 'new-listings' 
+  | 'logs' 
+  | 'pump-detector' 
+  | 'dump-detector' 
+  | 'pre-move-detector' 
+  | 'safe-sell' 
+  | 'tvl-analysis' 
+  | 'protocol-analysis' 
+  | 'coinglass-signals' 
+  | 'volume-marketcap' 
+  | 'pressure-scan' 
+  | 'ichimoku-scanner' 
+  | 'ichimoku-lagging-span' 
+  | 'ichimoku-combined';
+
+export type TabId = 
+  | 'charts' 
+  | 'signals' 
+  | 'news' 
+  | 'events' 
+  | 'tradingview-news' 
+  | 'important-news' 
+  | 'volume-profile';

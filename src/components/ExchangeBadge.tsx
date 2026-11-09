@@ -1,7 +1,6 @@
 import { useExchange } from '../contexts/ExchangeContext';
 import { useI18n } from '../i18n';
 import { ExchangeLogo, EXCHANGE_DISPLAY_NAMES } from './ExchangeLogo';
-import './ExchangeBadge.css';
 
 interface ExchangeBadgeProps {
     label?: string;
@@ -13,10 +12,13 @@ export function ExchangeBadge({ label }: ExchangeBadgeProps) {
     const badgeLabel = label ?? (isRTL ? 'منبع داده' : 'Data source');
 
     return (
-        <div className="exchange-badge header-control" title={EXCHANGE_DISPLAY_NAMES[exchange]}>
+        <div 
+            className="flex items-center gap-2 bg-surface/60 px-3 py-1.5 border border-border-subtle rounded-lg text-text-primary text-sm" 
+            title={EXCHANGE_DISPLAY_NAMES[exchange]}
+        >
             <ExchangeLogo exchange={exchange} size={18} />
-            <span className="exchange-badge-label">{badgeLabel}:</span>
-            <strong>{EXCHANGE_DISPLAY_NAMES[exchange]}</strong>
+            <span className="text-text-secondary">{badgeLabel}:</span>
+            <strong className="font-semibold">{EXCHANGE_DISPLAY_NAMES[exchange]}</strong>
         </div>
     );
 }

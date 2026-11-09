@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useI18n } from '../i18n';
 import { Button } from './Button';
-import './MarketControls.css';
 
 interface MarketControlsProps {
     symbol: string;
@@ -44,18 +43,13 @@ export function MarketControls({
     onIntervalChange,
     onRangeChange,
 }: MarketControlsProps) {
-    const { t } =
-        useI18n();
-    const [symbolInput, setSymbolInput] =
-        useState(symbol);
+    const { t } = useI18n();
+    const [symbolInput, setSymbolInput] = useState(symbol);
 
     const handleSearch = () => {
-        const value =
-            symbolInput.trim().toUpperCase();
+        const value = symbolInput.trim().toUpperCase();
 
-        if (
-            !/^[A-Z0-9]{5,20}$/.test(value)
-        ) {
+        if (!/^[A-Z0-9]{5,20}$/.test(value)) {
             return;
         }
 
@@ -63,14 +57,14 @@ export function MarketControls({
     };
 
     return (
-        <div className="controls-wrapper">
+        <div className="flex flex-wrap items-end gap-4 p-4 rounded-xl bg-surface/60 border border-border-subtle">
             {/* Symbol */}
-            <div className="control-group symbol">
-                <label className="control-label">
+            <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-text-secondary">
                     {t.controls.symbol}
                 </label>
 
-                <div className="input-wrapper">
+                <div className="flex gap-2">
                     <input
                         value={symbolInput}
                         onChange={(event) =>
@@ -84,14 +78,13 @@ export function MarketControls({
                             }
                         }}
                         placeholder="BTCUSDT"
-                        className="control-input"
+                        className="px-3 py-1.5 rounded-lg bg-[#0f172a]/60 border border-border-subtle text-sm text-text-primary focus:outline-none focus:border-primary"
                     />
 
                     <Button
                         variant="primary"
                         size="sm"
                         onClick={handleSearch}
-                        icon="🔍"
                     >
                         {t.controls.search}
                     </Button>
@@ -99,8 +92,8 @@ export function MarketControls({
             </div>
 
             {/* Interval */}
-            <div className="control-group select">
-                <label className="control-label">
+            <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-text-secondary">
                     {t.controls.interval}
                 </label>
 
@@ -111,7 +104,7 @@ export function MarketControls({
                             event.target.value,
                         )
                     }
-                    className="control-select"
+                    className="px-3 py-1.5 rounded-lg bg-[#0f172a]/60 border border-border-subtle text-sm text-text-primary focus:outline-none focus:border-primary"
                 >
                     {INTERVALS.map(
                         (item) => (
@@ -127,8 +120,8 @@ export function MarketControls({
             </div>
 
             {/* Range */}
-            <div className="control-group select">
-                <label className="control-label">
+            <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-text-secondary">
                     {t.controls.range}
                 </label>
 
@@ -139,7 +132,7 @@ export function MarketControls({
                             event.target.value,
                         )
                     }
-                    className="control-select"
+                    className="px-3 py-1.5 rounded-lg bg-[#0f172a]/60 border border-border-subtle text-sm text-text-primary focus:outline-none focus:border-primary"
                 >
                     {RANGES.map(
                         (item) => (

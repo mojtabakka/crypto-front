@@ -4,7 +4,6 @@ import { useI18n } from '../i18n';
 import { fetchVolumeMarketCapScan } from '../api/volume-marketcap/volume-marketcap';
 import type { VolumeMarketCapMatch } from '../types/volume-marketcap';
 import { Loading } from './Loading';
-import './VolumeMarketCapPanel.css';
 
 function fmtUsd(value: number | null | undefined): string {
   if (value === null || value === undefined || !Number.isFinite(value)) return '-';

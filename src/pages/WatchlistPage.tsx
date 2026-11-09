@@ -3,7 +3,6 @@ import { useI18n } from '../i18n';
 import { Loading } from '../components/Loading';
 import { Button } from '../components/Button';
 import { ExchangeBadge } from '../components/ExchangeBadge';
-import './WatchlistPage.css';
 
 interface WatchlistItem {
     id: number;

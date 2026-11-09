@@ -65,16 +65,18 @@ interface SignalsTabsProps {
 
 export function SignalsTabs({ activeTab, isRTL, onTabChange }: SignalsTabsProps) {
   return (
-    <div className="signals-tabs">
+    <div className="flex flex-wrap gap-2 px-4 py-3 bg-slate-900/40 border-b border-slate-700/50">
       {TABS.map((tab) => (
         <button
           key={tab.id}
-          className={`signals-tab ${activeTab === tab.id ? 'active' : ''}`}
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === tab.id ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg' : 'bg-slate-800/40 text-slate-300 hover:bg-slate-700/60 hover:text-slate-100'}`}
           onClick={() => onTabChange(tab.id)}
         >
-          <tab.Icon />
-          <span>{isRTL ? tab.label.fa : tab.label.en}</span>
-          {tab.subtitle && <span className="tab-subtitle">{isRTL ? tab.subtitle.fa : tab.subtitle.en}</span>}
+          <tab.Icon className="w-4 h-4" />
+          <div className="flex flex-col items-start">
+            <span className="font-medium">{isRTL ? tab.label.fa : tab.label.en}</span>
+            {tab.subtitle && <span className="text-xs opacity-80">{isRTL ? tab.subtitle.fa : tab.subtitle.en}</span>}
+          </div>
         </button>
       ))}
     </div>

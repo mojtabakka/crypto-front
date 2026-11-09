@@ -4,7 +4,6 @@ import { useI18n } from '../i18n';
 import { useExchange } from '../contexts/ExchangeContext';
 import { Loading } from '../components/Loading';
 import { ExchangeBadge } from '../components/ExchangeBadge';
-import './LongShortSignalsPage.css';
 
 interface LongShortSignal {
   id: number;

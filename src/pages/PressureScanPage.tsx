@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useI18n } from '../i18n';
 import { Loading } from '../components/Loading';
-import './PressureScanPage.css';
 
 interface PressureSignal {
   symbol: string;
